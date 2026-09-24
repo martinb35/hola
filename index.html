@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#153d38">
+<meta name="description" content="A little Spanish practice, one typed answer at a time.">
+<title>¡Hola! · Spanish practice</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23153d38'/%3E%3Ctext x='20' y='29' text-anchor='middle' font-size='29' fill='%23dbf58b'%3E¡%3C/text%3E%3C/svg%3E">
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#193a36;background:#f2f5f3;font-synthesis:none}*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button,select{cursor:pointer}button{min-height:48px;padding:12px 20px;border:1px solid #cbd7d1;border-radius:12px;background:white;color:#193a36;font-weight:650}button:hover{background:#eaf0eb}button:disabled{opacity:.5;cursor:default}button.primary{background:#153d38;color:white;border-color:#153d38}button.primary:hover{background:#23574e}button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #588b20;outline-offset:4px}[hidden]{display:none!important}.shell{max-width:900px;margin:auto;padding:32px 24px 40px}header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:32px}.brand{display:flex;align-items:center;gap:12px}.mark{display:grid;place-items:center;width:48px;height:48px;border-radius:16px;background:#153d38;color:#dbf58b;font-size:34px;font-weight:800}.brand strong{font-size:24px;letter-spacing:-1px}.brand small{display:block;font-size:14px;color:#566b65}.eyebrow{font-size:13px;letter-spacing:2px;text-transform:uppercase;font-weight:750;color:#557168}h1{font-size:clamp(28px,5vw,40px);letter-spacing:-1.4px;margin:10px 0}p{line-height:1.6}.intro{margin:0 0 24px;color:#566b65}.toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:22px}label{font-weight:650}select{padding:11px 34px 11px 12px;border:1px solid #cbd7d1;border-radius:10px;background:white;color:#193a36;max-width:100%}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}.stat{background:#e5ede8;padding:15px 18px;border-radius:12px}.stat strong{display:block;font-size:26px;line-height:1.2}.stat span{font-size:14px;color:#52675e}.progress{height:6px;background:#dce6df;border-radius:6px;overflow:hidden;margin-bottom:22px}.progress div{height:100%;background:#548340;transition:width .25s}.card{background:white;border:1px solid #dbe4df;border-radius:24px;box-shadow:0 12px 36px #153d3808;padding:32px}.cardtop{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:14px;color:#587068}.pill{background:#edf4df;border-radius:99px;padding:6px 12px;color:#3d5926;font-weight:650}.prompt{font-size:clamp(29px,5vw,42px);line-height:1.25;letter-spacing:-1px;margin:30px 0 12px;overflow-wrap:anywhere}.hint{color:#617144;font-size:15px;margin:0 0 26px}.answer-label{display:block;margin-bottom:10px;font-size:15px}input{width:100%;padding:17px 18px;font-size:21px;border:2px solid #bdccc4;border-radius:12px;color:#193a36;background:#fcfdfc}input:disabled{opacity:1;color:#52675e;background:#f2f5f3}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.actions .primary{flex:1}.keyboard{font-size:14px;color:#677b72;margin:16px 0 0}.feedback{margin-top:22px;padding:20px;border-radius:14px;background:#edf5e3;border-left:4px solid #668836;overflow-wrap:anywhere}.feedback.wrong{background:#fff1e9;border-color:#bf693e}.feedback h3{margin:0 0 8px;font-size:20px}.feedback p{margin:5px 0}.correct-answer{font-size:25px;font-weight:700}.feedback button{margin-top:12px}.note{font-size:14px;color:#596c63}.footer{margin-top:22px;display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap;color:#61746a;font-size:14px}.score{font-size:64px;font-weight:800;letter-spacing:-3px;margin:14px 0 0}.review-list{list-style:none;padding:0;margin:20px 0}.review-list li{padding:18px 0;border-bottom:1px solid #e0e8e2;display:flex;justify-content:space-between;align-items:center;gap:16px}.review-list strong{display:block;font-size:20px;margin-top:5px}.review-list small{display:block;color:#687a70;margin-top:5px}details{margin-top:28px}summary{cursor:pointer;font-weight:650;padding:10px 0}.history{padding-left:22px;color:#53695e}.history li{padding:7px 0;font-size:14px}.empty{color:#61746a}.review-heading{display:flex;justify-content:space-between;align-items:center;gap:16px}#storage-note{color:#885025} @media(max-width:540px){.shell{padding:20px 16px}header{margin-bottom:26px}.brand strong{font-size:22px}header button{padding:10px 12px;font-size:14px}.card{padding:24px 20px;border-radius:20px}.stats{gap:6px}.stat{padding:13px 10px}.stat strong{font-size:23px}.stat span{font-size:12px}.toolbar{align-items:flex-start;flex-direction:column}.toolbar select{width:100%}.prompt{margin-top:25px}.actions button{flex:1}.footer{gap:8px}.review-list li{align-items:flex-start}.review-list button{padding:10px}.review-heading{flex-wrap:wrap}}
+/* Keep the centered page and quiz controls steady when feedback appears. */
+html{overflow-y:scroll;scrollbar-gutter:stable}
+@supports (scrollbar-gutter:stable){html{overflow-y:auto}}
+#answer-form .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+#answer-form .actions button{min-width:0}
+.momentum,.celebration{position:fixed;top:180px;width:180px;text-align:center;pointer-events:none}
+.momentum{right:calc(50% + 455px)}
+.celebration{left:calc(50% + 455px);height:420px;overflow:hidden}
+.momentum-title{font-size:14px;font-weight:850;text-transform:uppercase;letter-spacing:2px}
+.thermometer{width:150px;height:340px;display:block;margin:12px auto 0;filter:drop-shadow(5px 6px 0 #193a3620)}
+#mercury{transition:y .55s ease,height .55s ease}
+.streak-count{display:block;font-size:44px;font-weight:900;line-height:1;letter-spacing:-2px}
+.streak-caption{font-size:14px;color:#52675e}
+.heat-label{display:block;margin-top:12px;font-size:18px;font-weight:850;transform:rotate(-5deg);color:#a13723}
+.next-milestone{font-size:13px;margin:12px 0 0;color:#52675e}
+.celebration-message{position:absolute;left:4px;right:4px;top:285px;font-size:25px;font-weight:900;color:#a13723;line-height:1.2}
+.firework{position:absolute;width:1px;height:1px;left:50%;top:140px}
+.spark{position:absolute;width:7px;height:7px;border-radius:2px;background:var(--color);animation:burst 1.4s ease-out both;animation-delay:var(--delay)}
+.celebration-show{position:absolute;inset:0;animation:celebration-end 4s forwards}
+@keyframes burst{0%{opacity:0;transform:translate(0,45px) scale(.2)}15%{opacity:1;transform:translate(0,0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(var(--x),var(--y)) rotate(220deg) scale(.25)}}
+@keyframes celebration-end{0%,85%{opacity:1}100%{opacity:0}}
+@media(max-width:1300px){
+ .extras{max-width:900px;margin:20px auto 0;padding:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+ .momentum,.celebration{position:relative;inset:auto;width:auto;height:170px}
+ .momentum{display:grid;grid-template-columns:76px 1fr;align-content:center;align-items:center;text-align:left;column-gap:10px}
+ .thermometer{grid-column:1;grid-row:1/6;width:70px;height:160px;margin:0}
+ .momentum-title{font-size:12px;letter-spacing:1px;grid-column:2}
+ .streak-count{font-size:32px;letter-spacing:-1px}
+ .heat-label{font-size:15px;transform:none;margin-top:4px}
+ .next-milestone{margin-top:4px;font-size:12px}
+ .celebration-message{top:120px;font-size:20px}
+ .firework{top:65px}
+}
+@media(max-width:540px){.extras{padding:0 16px;gap:4px}.momentum{grid-template-columns:54px 1fr;column-gap:5px}.thermometer{width:52px;height:140px}.momentum-title{font-size:11px}.streak-caption{font-size:12px}.heat-label{font-size:13px}.next-milestone{font-size:11px}.celebration-message{font-size:18px}}
+@media(prefers-reduced-motion:reduce){#mercury{transition:none}.spark{animation:none;opacity:1;transform:translate(var(--x),var(--y))}.celebration-show{animation:none}}
+</style>
+</head>
+<body>
+<div class="extras">
+<aside class="momentum" aria-label="Answer streak">
+ <div class="momentum-title">Momentum</div>
+ <svg class="thermometer" viewBox="0 0 150 340" aria-hidden="true">
+  <defs><clipPath id="tube-clip"><rect x="51" y="26" width="48" height="250" rx="24"/></clipPath><linearGradient id="heat" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#fa5b3f"/><stop offset="1" stop-color="#ffc648"/></linearGradient></defs>
+  <path d="M42 254V35a33 33 0 0 1 66 0v219a52 52 0 1 1-66 0" fill="#fff" stroke="#193a36" stroke-width="7" stroke-linejoin="round"/>
+  <rect x="51" y="26" width="48" height="250" rx="24" fill="#e5ede8"/>
+  <g clip-path="url(#tube-clip)"><rect id="mercury" x="51" y="264" width="48" height="12" fill="url(#heat)"/></g>
+  <path d="M53 58v175" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".75"/>
+  <path d="M85 45h20m-13 42h13m-20 42h20m-13 42h13m-20 42h20m-13 42h13" stroke="#193a36" stroke-width="3"/>
+  <circle cx="75" cy="288" r="40" fill="#fa5b3f" stroke="#193a36" stroke-width="5"/>
+  <ellipse cx="50" cy="277" rx="7" ry="12" fill="#fff" opacity=".6" transform="rotate(30 50 277)"/>
+  <path d="M61 284v6m28-6v6" stroke="#193a36" stroke-width="6" stroke-linecap="round"/>
+  <path d="M62 301q13 14 26 0" fill="#fff" stroke="#193a36" stroke-width="3" stroke-linecap="round"/>
+  <path d="m19 38-10-9m123 8 10-11M12 63H2m136 0h10" stroke="#e39522" stroke-width="5" stroke-linecap="round"/>
+ </svg>
+ <div role="status" aria-live="polite" aria-atomic="true"><strong class="streak-count" id="streak-count">0</strong><span class="streak-caption">correct in a row</span></div>
+ <strong class="heat-label" id="heat-label">Ready to simmer.</strong>
+ <p class="next-milestone" id="next-milestone">Fireworks in 5!</p>
+</aside>
+<aside class="celebration" id="celebration" aria-label="Streak celebration" role="status" aria-live="polite" aria-atomic="true"></aside>
+</div>
+<main class="shell">
+<header><div class="brand"><div class="mark" aria-hidden="true">¡</div><div><strong>¡Hola!</strong><small>A little practice. A lot of progress.</small></div></div><button id="review-button">Vocabulary</button></header>
+<section id="practice">
+<div class="eyebrow" id="set-heading">Everyday Spanish · 24 phrases</div><h1>Find your words.</h1><p class="intro">Read it. Type it. Make it stick.</p>
+<div class="toolbar"><label for="study-set">Study set</label><select id="study-set"><option value="everyday">Everyday Spanish</option><option value="personal">Personal Information</option></select></div>
+<div class="toolbar"><label for="direction">Practice direction</label><select id="direction"><option value="es">English → Spanish</option><option value="en">Spanish → English</option></select></div>
+<div class="stats" aria-label="Round statistics"><div class="stat"><strong id="correct">0</strong><span>Correct</span></div><div class="stat"><strong id="incorrect">0</strong><span>Incorrect</span></div><div class="stat"><strong id="remaining">24</strong><span>Remaining</span></div><div class="stat"><strong id="percent">0%</strong><span>Accuracy</span></div></div>
+<div class="progress" role="progressbar" aria-label="Round progress" aria-valuemin="0" aria-valuemax="24" aria-valuenow="0"><div id="progress-fill"></div></div>
+<section class="card" id="quiz"><div class="cardtop"><span id="position"></span><span class="pill" id="round-kind">Daily practice</span></div><h2 class="prompt" id="prompt"></h2><p class="hint" id="hint"></p>
+<form id="answer-form"><label class="answer-label" id="answer-label" for="answer">Your Spanish translation</label><input id="answer" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" placeholder="Type your answer…" aria-describedby="input-help"><div class="actions"><button class="primary" id="submit" type="submit">Check answer</button><button id="unknown" type="button">I don’t know</button><button id="retry" type="button" hidden>Try again</button></div></form>
+<div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div><p class="keyboard" id="input-help">Enter to check · Enter again for the next card</p><p class="note">Accents, capitalization, and punctuation won’t count against you.</p></section>
+<section class="card" id="summary" hidden tabindex="-1"><div class="eyebrow">Round complete</div><h2>Practice pays off.</h2><div class="score" id="final-percent"></div><p id="final-detail"></p><div class="actions"><button class="primary" id="missed">Retry missed cards</button><button id="new-round">New randomized round</button><button id="review-end">Review all vocabulary</button></div><p class="note">Scores use your first answer to each card. Extra tries are for practice.</p></section>
+</section>
+<section class="card" id="review" hidden><div class="review-heading"><div><div class="eyebrow" id="review-set">Your phrase collection</div><h1 id="review-title">All 24 phrases.</h1></div><button id="back">Back to practice</button></div><ul class="review-list" id="vocabulary"></ul></section>
+<div class="footer"><span id="save-status">Progress saved on this browser</span><span>Small steps, every day. ¡Vamos!</span></div><p id="storage-note" class="note" hidden>Saving is unavailable in this browser. You can still practice; keep this page open to keep your progress.</p>
+<details><summary>Recent scores</summary><ol class="history" id="history"></ol></details>
+</main>
+<script>
+'use strict';
+const VOCAB = [
+ ['What’s up?', '¿Qué tal?'], ['How’s it going?', '¿Cómo te va?'], ['My pleasure.', 'Mucho gusto.'], ['It’s my pleasure.', 'Encantado / Encantada.'],
+ ['See you soon!', '¡Nos vemos!', 'starts with N'], ['See you later!', '¡Hasta luego!'], ['See you tomorrow!', '¡Hasta mañana!'], ['See you soon!', '¡Hasta pronto!', 'starts with H'],
+ ['Bye!', '¡Chau!'], ['Goodbye!', '¡Adiós!'], ['Take care!', '¡Que te vaya bien!'], ['What is your name?', '¿Cuál es tu nombre?'],
+ ['I am…', 'Yo soy…'], ['What is your phone number?', '¿Cuál es tu número de teléfono?'], ['My phone number is…', 'Mi número de teléfono es…'], ['Are you on Snapchat?', '¿Estás en Snapchat?'],
+ ['Do you use WhatsApp/Instagram?', '¿Usas WhatsApp/Instagram?'], ['I use…', 'Uso…'], ['What is your username?', '¿Cuál es tu nombre de usuario?'], ['It is…', 'Es…'],
+ ['Text me.', 'Textéame.'], ['Send me a text.', 'Me mandas un texto.', 'verb starts with M'], ['Send me a text.', 'Me envías un texto.', 'verb starts with E'], ['Call me.', 'Llámame.']
+];
+const PERSONAL = [
+ ['Where were you born?', '¿Dónde naciste?'],
+ ['I was born in...', 'Nací en...'],
+ ['Where are you from?', '¿De dónde eres?'],
+ ['I am from...', 'Soy de...'],
+ ['...the United States.', '...los Estados Unidos.'],
+ ['...Spain.', '...España.'],
+ ['I am American.', 'Soy estadounidense.'],
+ ['I am Mexican.', 'Soy mexicano/mexicana.'],
+ ['Where do you live?', '¿Dónde vives?'],
+ ['I live in...', 'Vivo en...'],
+ ['What is your address?', '¿Cuál es tu dirección?'],
+ ['My address is...', 'Mi dirección es...'],
+ ['How old are you?', '¿Cuántos años tienes?'],
+ ['I am ___ years old.', 'Tengo ___ años.'],
+ ['When is your birthday?', '¿Cuándo es tu cumpleaños?'],
+ ['My birthday is the ___ of ___.', 'Mi cumpleaños es el ___ de ___.'],
+ ['the first of...', 'el primero de...']
+];
+const SETS = {everyday:{name:'Everyday Spanish',cards:VOCAB},personal:{name:'Personal Information',cards:PERSONAL}};
+const KEY = 'hola-vocabulary-v1';
+function normalize(value) { return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[.,!?¡¿…]/g,'').replace(/[’‘]/g,"'").replace(/\s*\/\s*/g,'/').trim().replace(/\s+/g,' '); }
+function templateMatches(template, answer){
+ const input=normalize(answer.replace(/_+/g,' '));
+ const escape=text=>text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+ // Leading ellipses mark a continuation: the vocabulary fragment alone is valid.
+ if(/^(?:\.{3}|…)/.test(template)){
+  const suffix=normalize(template.replace(/^(?:\.{3}|…)/,''));
+  return input===suffix || new RegExp('^[\\p{L}\\p{N}].*\\s'+escape(suffix)+'$','u').test(input);
+ }
+ if(!/(?:\.{3}|…|_{3,})/.test(template))return normalize(template)===input;
+ const parts=template.split(/(?:\.{3}|…|_{3,})/).map(normalize);
+ const slot="[\\p{L}\\p{N}][\\p{L}\\p{N}\\s'/-]*?";
+ let pattern=escape(parts[0]);
+ for(let i=1;i<parts.length;i++)pattern+=(parts[i-1]?'\\s+':'')+slot+(parts[i]?'\\s+'+escape(parts[i]):'');
+ // Ellipses are optional in every set; supplied endings are optional too.
+ if(!template.includes('___') && input===normalize(template))return true;
+ return new RegExp('^'+pattern+'$','u').test(input);
+}
+function grade(id, answer, direction, setId='everyday') {
+ const card=SETS[setId].cards[id];
+ const expected=direction==='es' && setId==='everyday' && id===3 ? ['Encantado','Encantada','Encantado / Encantada'] : direction==='es' && setId==='personal' && id===7 ? ['Soy mexicano.','Soy mexicana.','Soy mexicano/mexicana.'] : [card[direction==='es'?1:0]];
+ return expected.some(text=>templateMatches(text,answer));
+}
+function shuffle(ids) { const result = [...ids]; for(let i=result.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[result[i],result[j]]=[result[j],result[i]];}return result; }
+function makeRound(direction='es', ids, kind='full', setId='everyday') { return {setId,direction,order:shuffle(ids || SETS[setId].cards.map((_,i)=>i)),index:0,results:{},feedback:null,draft:'',kind,complete:false}; }
+function validRound(s) { const size=s&&SETS[s.setId || 'everyday']?.cards.length;return !!size && ['es','en'].includes(s.direction) && ['full','missed'].includes(s.kind) && Array.isArray(s.order) && s.order.length>0 && s.order.length<=size && new Set(s.order).size===s.order.length && s.order.every(id=>Number.isInteger(id)&&id>=0&&id<size) && Number.isInteger(s.index) && s.index>=0 && s.index<=s.order.length && typeof s.complete==='boolean' && s.complete===(s.index===s.order.length) && typeof s.draft==='string' && s.results && typeof s.results==='object' && Object.keys(s.results).every(id=>s.order.includes(Number(id))&&typeof s.results[id]==='boolean') && s.order.slice(0,s.index).every(id=>typeof s.results[id]==='boolean') && (s.feedback===null || (typeof s.feedback==='object' && typeof s.feedback.answer==='string' && typeof s.feedback.correct==='boolean')); }
+let state, history=[], rounds={}, storageOK=true, reviewing=false;
+try {
+ const saved=JSON.parse(localStorage.getItem(KEY));
+ if(saved){
+  for(const id of Object.keys(SETS)){const round=saved.rounds?.[id];if(validRound(round)&&round.setId===id)rounds[id]=round;}
+  if(validRound(saved.state)){state={...saved.state,setId:saved.state.setId || 'everyday'};rounds[state.setId]=state;}
+  history=Array.isArray(saved.history)?saved.history.filter(x=>x&&SETS[x.setId || 'everyday']&&typeof x.date==='string'&&Number.isInteger(x.correct)&&Number.isInteger(x.total)&&x.total>0&&x.total<=SETS[x.setId || 'everyday'].cards.length&&x.correct>=0&&x.correct<=x.total&&['es','en'].includes(x.direction)).slice(0,10).map(x=>({...x,setId:x.setId || 'everyday'})):[];
+ }
+} catch { storageOK=false; }
+if(!state)state=makeRound();
+const $=id=>document.getElementById(id);
+function save(){rounds[state.setId]=state;try{localStorage.setItem(KEY,JSON.stringify({state,history,rounds}));storageOK=true;}catch{storageOK=false;}$('storage-note').hidden=storageOK;$('save-status').textContent=storageOK?'Progress saved on this browser':'Practicing without saved progress';}
+function selectSet(id){if(!Object.hasOwn(SETS,id))return;save();state=rounds[id] || makeRound(state.direction,undefined,'full',id);reviewing=false;render(true);}
+function counts(){const values=Object.values(state.results);return {correct:values.filter(Boolean).length,incorrect:values.filter(v=>!v).length,answered:values.length};}
+// Derive momentum from saved first attempts, so old saves work without migration.
+function streak(){let value=0;for(const id of state.order){if(!Object.hasOwn(state.results,id))break;value=state.results[id]?value+1:0;}return value;}
+function renderMomentum(){
+ const value=streak();$('streak-count').textContent=value;
+ const height=12+Math.min(value,25)/25*238;
+ $('mercury').setAttribute('y',276-height);$('mercury').setAttribute('height',height);
+ $('heat-label').textContent=value>=20?'OFF THE CHARTS!':value>=15?'¡MUY CALIENTE!':value>=10?'Somebody call a chef!':value>=5?'Officially spicy!':value>0?'Getting toasty…':'Ready to simmer.';
+ $('next-milestone').textContent=`Fireworks in ${5-value%5}!`;
+ $('celebration').replaceChildren();
+}
+function celebrate(value){
+ const show=document.createElement('div');show.className='celebration-show';
+ const colors=['#e24c38','#e1a900','#4876df','#7e4bc4','#31836b'];
+ for(let burst=0;burst<3;burst++){
+  const firework=document.createElement('div');firework.className='firework';firework.setAttribute('aria-hidden','true');firework.style.marginLeft=(burst-1)*28+'px';
+  for(let i=0;i<20;i++){const spark=document.createElement('i');spark.className='spark';const angle=i/20*Math.PI*2,radius=45+(i%3)*12;spark.style.cssText=`--x:${Math.cos(angle)*radius}px;--y:${Math.sin(angle)*radius}px;--color:${colors[i%colors.length]};--delay:${burst*.65}s`;firework.append(spark);}show.append(firework);
+ }
+ const message=document.createElement('div');message.className='celebration-message';message.textContent=`${value} in a row! ¡BRAVO!`;show.append(message);$('celebration').append(show);
+}
+function speak(text){if(!('speechSynthesis' in window))return;window.speechSynthesis.cancel();const speech=new SpeechSynthesisUtterance(text.replace(' / ','. '));speech.lang='es-ES';speech.rate=.85;const voice=window.speechSynthesis.getVoices().find(v=>v.lang.startsWith('es'));if(voice)speech.voice=voice;speech.onerror=()=>{$('save-status').textContent='Audio unavailable. Try another browser or Spanish voice.';};window.speechSynthesis.speak(speech);}
+function audioButton(text){const button=document.createElement('button');button.type='button';button.textContent='♫ Hear Spanish';button.setAttribute('aria-label','Hear '+text);button.disabled=!('speechSynthesis' in window);button.onclick=()=>speak(text);return button;}
+function renderHistory(){$('history').replaceChildren();if(!history.length){const li=document.createElement('li');li.textContent='Finish a round to see your scores here.';$('history').append(li);}history.forEach(h=>{const li=document.createElement('li');li.textContent=`${new Date(h.date).toLocaleDateString()} · ${SETS[h.setId || 'everyday'].name} · ${h.correct}/${h.total} · ${Math.round(h.correct/h.total*100)}% · ${h.direction==='es'?'English → Spanish':'Spanish → English'}${h.kind==='missed'?' · Missed cards':''}`;$('history').append(li);});}
+function render(focus=false){
+ const set=SETS[state.setId];
+ $('study-set').value=state.setId;$('set-heading').textContent=`${set.name} · ${set.cards.length} phrases`;
+ renderVocabulary();
+ renderMomentum();
+ $('answer').setCustomValidity('');
+ $('practice').hidden=reviewing;$('review').hidden=!reviewing;$('review-button').hidden=reviewing;$('direction').value=state.direction;
+ const c=counts();const pct=c.answered?Math.round(c.correct/c.answered*100):0;
+ $('correct').textContent=c.correct;$('incorrect').textContent=c.incorrect;$('remaining').textContent=state.order.length-c.answered;$('percent').textContent=pct+'%';$('progress-fill').style.width=(c.answered/state.order.length*100)+'%';const bar=document.querySelector('[role="progressbar"]');bar.setAttribute('aria-valuemax',state.order.length);bar.setAttribute('aria-valuenow',c.answered);
+ $('quiz').hidden=state.complete;$('summary').hidden=!state.complete;
+ if(state.complete){$('final-percent').textContent=pct+'%';$('final-detail').textContent=`${c.correct} correct · ${c.incorrect} incorrect · ${state.order.length} phrases practiced`;$('missed').disabled=c.incorrect===0;if(focus&&!reviewing)$('summary').focus();}
+ else {const id=state.order[state.index],card=set.cards[id];$('position').textContent=`Card ${state.index+1} of ${state.order.length}`;$('round-kind').textContent=state.kind==='missed'?'Missed-card practice':set.name;$('prompt').textContent=card[state.direction==='es'?0:1];$('prompt').lang=state.direction==='es'?'en':'es';$('hint').textContent=state.direction==='es'&&card[2]?card[2]:state.setId==='personal'&&/(?:\.{3}|___)/.test(card[0])?(/^(?:\.{3})/.test(card[0])?'Translate the fragment, or use it in a phrase.':'Endings after ellipses are optional. Fill any blanks with your own words.') :'';$('hint').hidden=!$('hint').textContent;$('answer-label').textContent=`Your ${state.direction==='es'?'Spanish':'English'} translation`;$('answer').lang=state.direction;$('answer').value=state.draft;$('answer').disabled=!!state.feedback;$('submit').textContent=state.feedback?(state.index===state.order.length-1?'See results →':'Next card →'):'Check answer';$('unknown').hidden=!!state.feedback;$('retry').hidden=!state.feedback;
+ const panel=$('feedback');panel.replaceChildren();panel.hidden=!state.feedback;
+ if(state.feedback){const f=state.feedback;panel.className='feedback'+(f.correct?'':' wrong');const heading=document.createElement('h3');heading.textContent=f.correct?'¡Muy bien! That’s correct.':'Keep going. You’re learning.';panel.append(heading);const entered=document.createElement('p');entered.textContent=f.skipped?'You chose “I don’t know.”':`You entered: “${f.answer}”`;panel.append(entered);const label=document.createElement('p');label.textContent=state.direction==='es'?'Correct Spanish:':'Correct English:';const correct=document.createElement('p');correct.className='correct-answer';correct.lang=state.direction;correct.textContent=card[state.direction==='es'?1:0];panel.append(label,correct);if(state.direction==='en'){const spanish=document.createElement('p');spanish.lang='es';spanish.textContent=card[1];panel.append(spanish);}panel.append(audioButton(card[1]));if(f.practice){const note=document.createElement('p');note.className='note';note.textContent='Practice try — your first-answer score stays the same.';panel.append(note);}}
+ if(focus&&!reviewing)(state.feedback?$('submit'):$('answer')).focus({preventScroll:!!state.feedback});
+ }renderHistory();save();
+}
+function submit(skipped=false){if(state.complete)return;if(state.feedback){advance();return;}const answer=$('answer').value;if(!skipped&&!normalize(answer)){$('answer').setCustomValidity('Type an answer, or choose “I don’t know”.');$('answer').reportValidity();return;}const id=state.order[state.index],correct=!skipped&&grade(id,answer,state.direction,state.setId),practice=Object.hasOwn(state.results,id);if(!practice)state.results[id]=correct;state.draft=answer;state.feedback={answer,correct,skipped,practice};render(true);if(!practice&&correct&&streak()%5===0)celebrate(streak());}
+function advance(){state.index++;state.feedback=null;state.draft='';if(state.index===state.order.length){state.complete=true;const c=counts();history.unshift({date:new Date().toISOString(),correct:c.correct,total:state.order.length,direction:state.direction,kind:state.kind,setId:state.setId});history=history.slice(0,10);}render(true);}
+function start(ids,kind='full'){state=makeRound(state.direction,ids,kind,state.setId);reviewing=false;render(true);}
+function showReview(){reviewing=true;render();$('back').focus();}
+$('answer-form').onsubmit=e=>{e.preventDefault();submit();};$('answer').oninput=()=>{$('answer').setCustomValidity('');state.draft=$('answer').value;save();};$('unknown').onclick=()=>submit(true);$('retry').onclick=()=>{state.feedback=null;state.draft='';render(true);};
+$('direction').onchange=()=>{state=makeRound($('direction').value,undefined,'full',state.setId);render(true);};
+$('study-set').onchange=()=>selectSet($('study-set').value);
+$('new-round').onclick=()=>start();$('missed').onclick=()=>start(state.order.filter(id=>state.results[id]===false),'missed');$('review-button').onclick=showReview;$('review-end').onclick=showReview;$('back').onclick=()=>{reviewing=false;render(true);};
+function renderVocabulary(){
+ const set=SETS[state.setId];$('review-set').textContent=set.name;$('review-title').textContent=`All ${set.cards.length} phrases.`;$('vocabulary').replaceChildren();
+ set.cards.forEach(card=>{const li=document.createElement('li'),wrap=document.createElement('div'),english=document.createElement('span'),spanish=document.createElement('strong');english.textContent=card[0];spanish.textContent=card[1];spanish.lang='es';wrap.append(english,spanish);if(card[2]){const hint=document.createElement('small');hint.textContent=card[2];wrap.append(hint);}li.append(wrap,audioButton(card[1]));$('vocabulary').append(li);});
+}
+render();
+</script>
+</body>
+</html>
