@@ -2,6 +2,8 @@
 
 Open `index.html` by double-clicking it, or use your browser’s Open File command. Everything is inside this file: no installation, build, account, or internet connection is needed for the quiz.
 
+The GitHub Pages version is at https://martinb35.github.io/hola/. Pages publishes from the root of `master`, so pushing updates to that branch automatically updates the site. `.nojekyll` keeps deployment as plain static HTML. Saved progress belongs to the browser and address: the hosted site and your local file have separate progress.
+
 - Type the translation, then press **Enter** or **Check answer**. Press Enter again or **Next card** after reading the feedback.
 - **I don’t know** reveals the answer and counts as incorrect. **Try again** lets you practice that card without changing its first-answer score.
 - Accuracy is correct first answers divided by all graded cards. Remaining means cards not yet graded.
