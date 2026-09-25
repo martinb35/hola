@@ -153,6 +153,19 @@ try {
  }
 } catch { storageOK=false; }
 if(!state)state=makeRound();
+// Recheck visible saved feedback after grading rules change. Only the original
+// attempt can repair its score; retries and skipped cards never earn credit.
+function refreshSavedFeedback(round){
+ const feedback=round.feedback;
+ if(round.complete || !feedback || feedback.skipped)return;
+ const id=round.order[round.index];
+ const correct=grade(id,feedback.answer,round.direction,round.setId);
+ if(correct && !feedback.correct){
+  feedback.correct=true;
+  if(!feedback.practice)round.results[id]=true;
+ }
+}
+for(const round of new Set([state,...Object.values(rounds)]))refreshSavedFeedback(round);
 const $=id=>document.getElementById(id);
 function save(){rounds[state.setId]=state;try{localStorage.setItem(KEY,JSON.stringify({state,history,rounds}));storageOK=true;}catch{storageOK=false;}$('storage-note').hidden=storageOK;$('save-status').textContent=storageOK?'Progress saved on this browser':'Practicing without saved progress';}
 function selectSet(id){if(!Object.hasOwn(SETS,id))return;save();state=rounds[id] || makeRound(state.direction,undefined,'full',id);reviewing=false;render(true);}

@@ -117,4 +117,21 @@ test('personal feedback, missed rounds, summaries and scores use the selected se
  a.run("state=makeRound('en',[15],'full','personal');$('answer').value='My birthday is the 4th of May';submit()");
  assert.ok(a.nodes.get('feedback').children.some(n=>n.textContent==='Mi cumpleaños es el ___ de ___.'));
 });
+test('reload repairs an outdated rejection of vivo en and its first-attempt score',()=>{
+ const a=boot();a.run("state=makeRound('es',[9],'full','personal');$('answer').value=' vivo en';submit()");
+ const saved=JSON.parse(a.saved());saved.state.feedback.correct=false;saved.state.results[9]=false;
+ const b=boot(JSON.stringify(saved));assert.equal(b.run('state.feedback.correct'),true);assert.equal(b.run('counts().correct'),1);assert.equal(b.run('counts().incorrect'),0);assert.equal(b.run('streak()'),1);
+ assert.equal(b.nodes.get('feedback').children[3].textContent,'Vivo en...');
+ assert.equal(b.nodes.get('celebration').children.length,0);
+ const c=boot(b.saved());assert.equal(c.run('counts().correct'),1);
+});
+test('saved feedback repair never awards credit to skipped cards or practice retries',()=>{
+ const a=boot();a.run("state=makeRound('es',[9],'full','personal');$('answer').value='vivo en';submit()");
+ const saved=JSON.parse(a.saved());saved.state.feedback.correct=false;saved.state.results[9]=false;saved.state.feedback.practice=true;
+ const retry=boot(JSON.stringify(saved));assert.equal(retry.run('state.feedback.correct'),true);assert.equal(retry.run('counts().incorrect'),1);
+ saved.state.feedback.practice=false;saved.state.feedback.skipped=true;
+ const skipped=boot(JSON.stringify(saved));assert.equal(skipped.run('state.feedback.correct'),false);assert.equal(skipped.run('counts().incorrect'),1);
+ saved.state.feedback.skipped=false;saved.state.feedback.answer='vivo enn';
+ const typo=boot(JSON.stringify(saved));assert.equal(typo.run('state.feedback.correct'),false);
+});
 console.log(`\n${checks} checks passed.`);
