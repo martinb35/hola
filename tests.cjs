@@ -134,4 +134,23 @@ test('saved feedback repair never awards credit to skipped cards or practice ret
  saved.state.feedback.skipped=false;saved.state.feedback.answer='vivo enn';
  const typo=boot(JSON.stringify(saved));assert.equal(typo.run('state.feedback.correct'),false);
 });
+
+test('Feelings contains 17 pairs accepted in both directions',()=>{
+ const a=boot();a.run("selectSet('feelings')");assert.equal(a.run('state.order.length'),17);assert.equal(a.nodes.get('vocabulary').children.length,17);
+ assert.equal(a.run("FEELINGS.every((card,id)=>grade(id,card[0],'en','feelings')&&grade(id,card[1],'es','feelings'))"),true);
+ assert.equal(a.run("grade(0,'Como estas','es','feelings')&&grade(1,'Como esta usted','es','feelings')&&grade(14,'yo tambien','es','feelings')"),true);
+ assert.equal(a.run("grade(0,'Como esta usted','es','feelings')"),false);assert.equal(a.run("grade(1,'Como estas','es','feelings')"),false);
+});
+test('Feelings accepts both gender forms and English alternatives without accepting typos',()=>{
+ const a=boot();assert.equal(a.run("FEELINGS.slice(6,14).every((card,i)=>card[1].replace(/^…/,'').split('/').every(word=>grade(i+6,word,'es','feelings')&&grade(i+6,'Estoy '+word,'es','feelings')))"),true);
+ assert.equal(a.run("Object.entries(FEELINGS_ENGLISH).every(([id,answers])=>answers.every(answer=>grade(Number(id),answer,'en','feelings')))"),true);
+ assert.equal(a.run("grade(7,'cansadoo','es','feelings')"),false);
+});
+test('Feelings progress survives reload and switching lessons',()=>{
+ const a=boot();a.run("$('answer').value='old draft';$('answer').oninput();selectSet('personal');$('answer').value='personal draft';$('answer').oninput();selectSet('feelings');state=makeRound('es',[7],'full','feelings');$('answer').value='cansada';submit()");
+ assert.equal(a.nodes.get('feedback').children[3].textContent,'…cansado/cansada');
+ const b=boot(a.saved());assert.equal(b.run('state.setId'),'feelings');assert.equal(b.run('counts().correct'),1);
+ b.run("selectSet('everyday')");assert.equal(b.nodes.get('answer').value,'old draft');b.run("selectSet('personal')");assert.equal(b.nodes.get('answer').value,'personal draft');
+ b.run("selectSet('feelings');submit()");assert.equal(b.run('history[0].setId'),'feelings');assert.equal(b.nodes.get('final-percent').textContent,'100%');
+});
 console.log(`\n${checks} checks passed.`);

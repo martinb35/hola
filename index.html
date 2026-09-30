@@ -73,7 +73,7 @@ html{overflow-y:scroll;scrollbar-gutter:stable}
 <header><div class="brand"><div class="mark" aria-hidden="true">¡</div><div><strong>¡Hola!</strong><small>A little practice. A lot of progress.</small></div></div><button id="review-button">Vocabulary</button></header>
 <section id="practice">
 <div class="eyebrow" id="set-heading">Everyday Spanish · 24 phrases</div><h1>Find your words.</h1><p class="intro">Read it. Type it. Make it stick.</p>
-<div class="toolbar"><label for="study-set">Study set</label><select id="study-set"><option value="everyday">Everyday Spanish</option><option value="personal">Personal Information</option></select></div>
+<div class="toolbar"><label for="study-set">Study set</label><select id="study-set"><option value="everyday">Everyday Spanish</option><option value="personal">Personal Information</option><option value="feelings">Feelings</option></select></div>
 <div class="toolbar"><label for="direction">Practice direction</label><select id="direction"><option value="es">English → Spanish</option><option value="en">Spanish → English</option></select></div>
 <div class="stats" aria-label="Round statistics"><div class="stat"><strong id="correct">0</strong><span>Correct</span></div><div class="stat"><strong id="incorrect">0</strong><span>Incorrect</span></div><div class="stat"><strong id="remaining">24</strong><span>Remaining</span></div><div class="stat"><strong id="percent">0%</strong><span>Accuracy</span></div></div>
 <div class="progress" role="progressbar" aria-label="Round progress" aria-valuemin="0" aria-valuemax="24" aria-valuenow="0"><div id="progress-fill"></div></div>
@@ -115,7 +115,27 @@ const PERSONAL = [
  ['My birthday is the ___ of ___.', 'Mi cumpleaños es el ___ de ___.'],
  ['the first of...', 'el primero de...']
 ];
-const SETS = {everyday:{name:'Everyday Spanish',cards:VOCAB},personal:{name:'Personal Information',cards:PERSONAL}};
+const FEELINGS = [
+ ['How are you? (informal)', '¿Cómo estás?'],
+ ['How are you? (formal)', '¿Cómo está usted?'],
+ ['I am…', 'Estoy…'],
+ ['How do you feel?', '¿Cómo te sientes?'],
+ ['I feel/I am…', 'Me siento…'],
+ ['…okay', '…más o menos'],
+ ['…sick', '…enfermo/enferma'],
+ ['…tired', '…cansado/cansada'],
+ ['…overwhelmed/stressed', '…estresado/estresada'],
+ ['…nervous', '…nervioso/nerviosa'],
+ ['…excited', '…emocionado/emocionada'],
+ ['…content (happy)', '…contento/contenta'],
+ ['…calm/relaxed', '…tranquilo/tranquila'],
+ ['…bored', '…aburrido/aburrida'],
+ ['Me too.', 'Yo también.'],
+ ['Oh, I’m sorry.', '¡Ay, lo siento!'],
+ ['It’s alright.', 'Está bien.']
+];
+const FEELINGS_ENGLISH = {0:['How are you?'],1:['How are you?'],4:['I feel…','I am…'],8:['…overwhelmed','…stressed'],11:['…content','…happy'],12:['…calm','…relaxed']};
+const SETS = {everyday:{name:'Everyday Spanish',cards:VOCAB},personal:{name:'Personal Information',cards:PERSONAL},feelings:{name:'Feelings',cards:FEELINGS}};
 const KEY = 'hola-vocabulary-v1';
 function normalize(value) { return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[.,!?¡¿…]/g,'').replace(/[’‘]/g,"'").replace(/\s*\/\s*/g,'/').trim().replace(/\s+/g,' '); }
 function templateMatches(template, answer){
@@ -138,6 +158,10 @@ function templateMatches(template, answer){
 function grade(id, answer, direction, setId='everyday') {
  const card=SETS[setId].cards[id];
  const expected=direction==='es' && setId==='everyday' && id===3 ? ['Encantado','Encantada','Encantado / Encantada'] : direction==='es' && setId==='personal' && id===7 ? ['Soy mexicano.','Soy mexicana.','Soy mexicano/mexicana.'] : [card[direction==='es'?1:0]];
+ if(setId==='feelings'){
+  if(direction==='es' && id>=6 && id<=13)expected.push(...card[1].replace(/^…/,'').split('/').map(word=>'…'+word));
+  if(direction==='en')expected.push(...(FEELINGS_ENGLISH[id] || []));
+ }
  return expected.some(text=>templateMatches(text,answer));
 }
 function shuffle(ids) { const result = [...ids]; for(let i=result.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[result[i],result[j]]=[result[j],result[i]];}return result; }
