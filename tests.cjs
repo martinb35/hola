@@ -176,4 +176,18 @@ test('Opinions rounds restore without changing existing lessons and support miss
  const b=boot(a.saved());assert.equal(b.run('state.kind'),'missed');b.run("$('answer').value='el baloncesto';submit();submit()");assert.equal(b.run('history[0].setId'),'opinions');assert.equal(b.nodes.get('final-percent').textContent,'100%');
  b.run("selectSet('feelings')");assert.equal(b.nodes.get('answer').value,'my draft');b.run("selectSet('opinions');$('direction').value='en';$('direction').onchange()");assert.equal(b.run('state.order.length'),24);assert.equal(b.run('state.direction'),'en');
 });
+
+test('natural English alternatives preserve the meaning of the opinions prompt',()=>{
+ const a=boot();assert.equal(a.run("grade(10,'I like both of them','en','opinions')"),true);
+ assert.equal(a.run("grade(3,'You like Spanish class, do you not?','en','opinions')"),true);
+ assert.equal(a.run("grade(11,'I do not like basketball and I do not like homework','en','opinions')"),true);
+ assert.equal(a.run("grade(10,'I like one of them','en','opinions')"),false);
+});
+test('saved progress rejects future scores and feedback without an attempt',()=>{
+ const a=boot();assert.equal(a.run("(()=>{const s=makeRound();s.results[s.order[2]]=true;return validRound(s)})()"),false);
+ assert.equal(a.run("(()=>{const s=makeRound();s.feedback={answer:'test',correct:true};return validRound(s)})()"),false);
+ assert.equal(a.run("(()=>{const s=makeRound();s.setId='constructor';return validRound(s)})()"),false);
+ a.run("$('unknown').onclick();$('retry').onclick()");assert.equal(a.run('validRound(state)'),true);
+ const b=boot(a.saved());assert.equal(b.run('counts().incorrect'),1);
+});
 console.log(`\n${checks} checks passed.`);

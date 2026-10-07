@@ -141,12 +141,12 @@ const OPINIONS = [
  ['What do you like?', '¿Qué te gusta?'],
  ['basketball', 'el baloncesto'],
  ['homework', 'la tarea'],
- ['You like Spanish class, don’t you?', 'Te gusta la clase de español, ¿no?', '', {en:['You like Spanish class, right?']}],
+ ['You like Spanish class, don’t you?', 'Te gusta la clase de español, ¿no?', '', {en:['You like Spanish class, right?','You like Spanish class, do you not?']}],
  ['Do you like…?', '¿Te gustan…?', '', {quiz:['Do you like Spanish classes?', '¿Te gustan las clases de español?'], template:true}],
  ['I like…', 'Me gusta… / Me gustan…', '', {quiz:['I like Spanish classes.', 'Me gustan las clases de español.'], template:true}],
  ['and', 'y'], ['but', 'pero'], ['because', 'porque'], ['or', 'o'],
- ['I like both.', 'Me gustan los dos.'],
- ['I don’t like _____ or _____. / I like neither _____ nor _____.', 'No me gusta _____ ni _____. / No me gustan _____ ni _____.', '', {quiz:['I don’t like basketball or homework.', 'No me gusta el baloncesto ni la tarea.'], en:['I like neither basketball nor homework.','I don’t like either basketball or homework.'], template:true}],
+ ['I like both.', 'Me gustan los dos.', '', {en:['I like both of them.']}],
+ ['I don’t like _____ or _____. / I like neither _____ nor _____.', 'No me gusta _____ ni _____. / No me gustan _____ ni _____.', '', {quiz:['I don’t like basketball or homework.', 'No me gusta el baloncesto ni la tarea.'], en:['I like neither basketball nor homework.','I don’t like either basketball or homework.','I don’t like basketball and I don’t like homework.'], template:true}],
  ['I love…', 'Me encanta… / Me encantan…', '', {quiz:['I love Spanish classes.', 'Me encantan las clases de español.'], template:true}],
  ['I hate…', 'Yo odio…', '', {quiz:['I hate homework.', 'Yo odio la tarea.'], es:['Odio la tarea.'], template:true}],
  ['I also like it/them.', 'Me gusta también. / Me gustan también.', '', {quiz:['I also like basketball.', 'Me gusta el baloncesto también.'], es:['También me gusta el baloncesto.','Me gusta también el baloncesto.'], en:['I like basketball too.','I like basketball as well.'], template:true}],
@@ -199,7 +199,7 @@ function grade(id, answer, direction, setId='everyday') {
 }
 function shuffle(ids) { const result = [...ids]; for(let i=result.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[result[i],result[j]]=[result[j],result[i]];}return result; }
 function makeRound(direction='es', ids, kind='full', setId='everyday') { return {setId,direction,order:shuffle(ids || SETS[setId].cards.map((_,i)=>i)),index:0,results:{},feedback:null,draft:'',kind,complete:false}; }
-function validRound(s) { const size=s&&SETS[s.setId || 'everyday']?.cards.length;return !!size && ['es','en'].includes(s.direction) && ['full','missed'].includes(s.kind) && Array.isArray(s.order) && s.order.length>0 && s.order.length<=size && new Set(s.order).size===s.order.length && s.order.every(id=>Number.isInteger(id)&&id>=0&&id<size) && Number.isInteger(s.index) && s.index>=0 && s.index<=s.order.length && typeof s.complete==='boolean' && s.complete===(s.index===s.order.length) && typeof s.draft==='string' && s.results && typeof s.results==='object' && Object.keys(s.results).every(id=>s.order.includes(Number(id))&&typeof s.results[id]==='boolean') && s.order.slice(0,s.index).every(id=>typeof s.results[id]==='boolean') && (s.feedback===null || (typeof s.feedback==='object' && typeof s.feedback.answer==='string' && typeof s.feedback.correct==='boolean')); }
+function validRound(s) { const size=s&&Object.hasOwn(SETS,s.setId || 'everyday')&&SETS[s.setId || 'everyday'].cards.length;return !!size && ['es','en'].includes(s.direction) && ['full','missed'].includes(s.kind) && Array.isArray(s.order) && s.order.length>0 && s.order.length<=size && new Set(s.order).size===s.order.length && s.order.every(id=>Number.isInteger(id)&&id>=0&&id<size) && Number.isInteger(s.index) && s.index>=0 && s.index<=s.order.length && typeof s.complete==='boolean' && s.complete===(s.index===s.order.length) && typeof s.draft==='string' && s.results && typeof s.results==='object' && Object.keys(s.results).every(id=>String(Number(id))===id&&s.order.slice(0,s.complete?s.index:s.index+1).includes(Number(id))&&typeof s.results[id]==='boolean') && s.order.slice(0,s.index).every(id=>typeof s.results[id]==='boolean') && (s.feedback===null || (typeof s.feedback==='object' && !s.complete && typeof s.results[s.order[s.index]]==='boolean' && typeof s.feedback.answer==='string' && typeof s.feedback.correct==='boolean')); }
 let state, history=[], rounds={}, storageOK=true, reviewing=false;
 try {
  const saved=JSON.parse(localStorage.getItem(KEY));
