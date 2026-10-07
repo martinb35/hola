@@ -24,3 +24,5 @@ In Personal Information, **Soy mexicano** and **Soy mexicana** are both accepted
 Developer verification: run `node tests.cjs` (Node is only needed for tests, never for the app).
 
 **Feelings** accepts either gender form (for example, cansado or cansada). In reverse practice, either listed English alternative works, such as calm or relaxed; formal/informal labels do not need to be typed. Ellipses and supplied endings remain optional.
+
+**Likes, Dislikes & Opinions** includes the 18 worksheet entries, a singular question variant, and five complete examples (24 cards). Review labels templates and shows both gusta/gustan and encanta/encantan. Quizzes use complete sentences with explicit singular or plural nouns for agreement, rather than asking you to guess from “I like…” alone. Use gusta/encanta with a singular noun or infinitive and gustan/encantan with plural nouns: the thing liked determines the form. Listed English equivalents and do not/don’t are accepted. Correct Spanish answers with missing accents receive a spelling reminder without losing points. Each category still keeps its own progress.

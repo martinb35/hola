@@ -85,7 +85,7 @@ test('templates require filled blanks and correctly spelled fixed words',()=>{
 });
 test('all ellipsis phrases accept bare phrases, literal ellipses, or supplied endings',()=>{
  const a=boot();
- assert.equal(a.run("Object.entries(SETS).every(([setId,set])=>set.cards.every((card,id)=>['es','en'].every(dir=>{const text=card[dir==='es'?1:0];if(!/(?:\\.{3}|…)$/.test(text))return true;const bare=text.replace(/(?:\\.{3}|…)$/,'');return [bare,text,bare+' Madrid'].every(answer=>grade(id,answer,dir,setId));})))"),true);
+ assert.equal(a.run("Object.entries(SETS).every(([setId,set])=>set.cards.every((card,id)=>['es','en'].every(dir=>{const text=card[dir==='es'?1:0];if(card[3]?.quiz || !/(?:\\.{3}|…)$/.test(text))return true;const bare=text.replace(/(?:\\.{3}|…)$/,'');return [bare,text,bare+' Madrid'].every(answer=>grade(id,answer,dir,setId));})))"),true);
  a.run("state=makeRound('es',[9],'full','personal');$('answer').value='Vivo en';submit()");
  assert.equal(a.run('state.feedback.correct'),true);
  assert.equal(a.nodes.get('feedback').children[3].textContent,'Vivo en...');
@@ -152,5 +152,28 @@ test('Feelings progress survives reload and switching lessons',()=>{
  const b=boot(a.saved());assert.equal(b.run('state.setId'),'feelings');assert.equal(b.run('counts().correct'),1);
  b.run("selectSet('everyday')");assert.equal(b.nodes.get('answer').value,'old draft');b.run("selectSet('personal')");assert.equal(b.nodes.get('answer').value,'personal draft');
  b.run("selectSet('feelings');submit()");assert.equal(b.run('history[0].setId'),'feelings');assert.equal(b.nodes.get('final-percent').textContent,'100%');
+});
+
+test('Opinions contains the 18 entries plus six practice variants and examples',()=>{
+ const a=boot();a.run("selectSet('opinions')");assert.equal(a.run('OPINIONS.length'),24);assert.equal(a.run('state.order.length'),24);assert.equal(a.nodes.get('vocabulary').children.length,24);
+ assert.equal(a.run("OPINIONS.every((_,id)=>['es','en'].every(dir=>grade(id,practiceCard('opinions',id)[dir==='es'?1:0],dir,'opinions')))"),true);
+ assert.equal(a.run("OPINIONS.every((_,id)=>!/[…_]|\\(n\\)/.test(practiceCard('opinions',id).join(' ')))"),true);
+});
+test('Opinions grades agreement in complete sentences and preserves articles',()=>{
+ const a=boot();
+ for(const [id,answer] of [[4,'Te gusta las clases de español'],[5,'Me gusta las clases de español'],[12,'Me encanta las clases de español'],[18,'Te gustan el baloncesto'],[19,'Me gustan el baloncesto'],[21,'Me encantan la clase de español'],[1,'baloncesto'],[2,'tarea']])assert.equal(a.run('grade('+id+','+JSON.stringify(answer)+',"es","opinions")'),false,answer);
+ assert.equal(a.run("grade(4,'Te gustan las clases de espanol','es','opinions')"),true);
+ assert.equal(a.run("grade(18,'Te gusta el baloncesto','es','opinions')"),true);
+});
+test('Opinions accepts equivalent English translations and supplies accent guidance',()=>{
+ const a=boot();
+ for(const [id,answer] of [[3,'You like Spanish class, right?'],[11,'I like neither basketball nor homework'],[15,'I do not like homework either'],[17,'I really like Spanish classes'],[23,'I do not like basketball or homework']])assert.equal(a.run('grade('+id+','+JSON.stringify(answer)+',"en","opinions")'),true,answer);
+ a.run("state=makeRound('es',[17],'full','opinions');$('answer').value='Me gustan muchisimo las clases de espanol';submit()");assert.equal(a.run('counts().correct'),1);
+ assert.ok(a.nodes.get('feedback').children.some(n=>n.textContent.includes('Spelling reminder: muchísimo, español')));
+});
+test('Opinions rounds restore without changing existing lessons and support missed-card practice',()=>{
+ const a=boot();a.run("selectSet('feelings');$('answer').value='my draft';$('answer').oninput();selectSet('opinions');state=makeRound('es',[1],'full','opinions');$('unknown').onclick();submit();$('missed').onclick()");assert.equal(a.run('state.order.join()'),'1');assert.equal(a.run('state.setId'),'opinions');
+ const b=boot(a.saved());assert.equal(b.run('state.kind'),'missed');b.run("$('answer').value='el baloncesto';submit();submit()");assert.equal(b.run('history[0].setId'),'opinions');assert.equal(b.nodes.get('final-percent').textContent,'100%');
+ b.run("selectSet('feelings')");assert.equal(b.nodes.get('answer').value,'my draft');b.run("selectSet('opinions');$('direction').value='en';$('direction').onchange()");assert.equal(b.run('state.order.length'),24);assert.equal(b.run('state.direction'),'en');
 });
 console.log(`\n${checks} checks passed.`);

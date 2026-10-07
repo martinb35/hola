@@ -73,8 +73,9 @@ html{overflow-y:scroll;scrollbar-gutter:stable}
 <header><div class="brand"><div class="mark" aria-hidden="true">¡</div><div><strong>¡Hola!</strong><small>A little practice. A lot of progress.</small></div></div><button id="review-button">Vocabulary</button></header>
 <section id="practice">
 <div class="eyebrow" id="set-heading">Everyday Spanish · 24 phrases</div><h1>Find your words.</h1><p class="intro">Read it. Type it. Make it stick.</p>
-<div class="toolbar"><label for="study-set">Study set</label><select id="study-set"><option value="everyday">Everyday Spanish</option><option value="personal">Personal Information</option><option value="feelings">Feelings</option></select></div>
+<div class="toolbar"><label for="study-set">Study set</label><select id="study-set"><option value="everyday">Everyday Spanish</option><option value="personal">Personal Information</option><option value="feelings">Feelings</option><option value="opinions">Likes, Dislikes &amp; Opinions</option></select></div>
 <div class="toolbar"><label for="direction">Practice direction</label><select id="direction"><option value="es">English → Spanish</option><option value="en">Spanish → English</option></select></div>
+<p class="note" id="lesson-note" hidden></p>
 <div class="stats" aria-label="Round statistics"><div class="stat"><strong id="correct">0</strong><span>Correct</span></div><div class="stat"><strong id="incorrect">0</strong><span>Incorrect</span></div><div class="stat"><strong id="remaining">24</strong><span>Remaining</span></div><div class="stat"><strong id="percent">0%</strong><span>Accuracy</span></div></div>
 <div class="progress" role="progressbar" aria-label="Round progress" aria-valuemin="0" aria-valuemax="24" aria-valuenow="0"><div id="progress-fill"></div></div>
 <section class="card" id="quiz"><div class="cardtop"><span id="position"></span><span class="pill" id="round-kind">Daily practice</span></div><h2 class="prompt" id="prompt"></h2><p class="hint" id="hint"></p>
@@ -82,7 +83,7 @@ html{overflow-y:scroll;scrollbar-gutter:stable}
 <div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div><p class="keyboard" id="input-help">Enter to check · Enter again for the next card</p><p class="note">Accents, capitalization, and punctuation won’t count against you.</p></section>
 <section class="card" id="summary" hidden tabindex="-1"><div class="eyebrow">Round complete</div><h2>Practice pays off.</h2><div class="score" id="final-percent"></div><p id="final-detail"></p><div class="actions"><button class="primary" id="missed">Retry missed cards</button><button id="new-round">New randomized round</button><button id="review-end">Review all vocabulary</button></div><p class="note">Scores use your first answer to each card. Extra tries are for practice.</p></section>
 </section>
-<section class="card" id="review" hidden><div class="review-heading"><div><div class="eyebrow" id="review-set">Your phrase collection</div><h1 id="review-title">All 24 phrases.</h1></div><button id="back">Back to practice</button></div><ul class="review-list" id="vocabulary"></ul></section>
+<section class="card" id="review" hidden><div class="review-heading"><div><div class="eyebrow" id="review-set">Your phrase collection</div><h1 id="review-title">All 24 phrases.</h1></div><button id="back">Back to practice</button></div><p class="note" id="review-note" hidden></p><ul class="review-list" id="vocabulary"></ul></section>
 <div class="footer"><span id="save-status">Progress saved on this browser</span><span>Small steps, every day. ¡Vamos!</span></div><p id="storage-note" class="note" hidden>Saving is unavailable in this browser. You can still practice; keep this page open to keep your progress.</p>
 <details><summary>Recent scores</summary><ol class="history" id="history"></ol></details>
 </main>
@@ -135,7 +136,34 @@ const FEELINGS = [
  ['It’s alright.', 'Está bien.']
 ];
 const FEELINGS_ENGLISH = {0:['How are you?'],1:['How are you?'],4:['I feel…','I am…'],8:['…overwhelmed','…stressed'],11:['…content','…happy'],12:['…calm','…relaxed']};
-const SETS = {everyday:{name:'Everyday Spanish',cards:VOCAB},personal:{name:'Personal Information',cards:PERSONAL},feelings:{name:'Feelings',cards:FEELINGS}};
+// The 18 worksheet entries stay visible in review; templates have complete quiz contexts.
+const OPINIONS = [
+ ['What do you like?', '¿Qué te gusta?'],
+ ['basketball', 'el baloncesto'],
+ ['homework', 'la tarea'],
+ ['You like Spanish class, don’t you?', 'Te gusta la clase de español, ¿no?', '', {en:['You like Spanish class, right?']}],
+ ['Do you like…?', '¿Te gustan…?', '', {quiz:['Do you like Spanish classes?', '¿Te gustan las clases de español?'], template:true}],
+ ['I like…', 'Me gusta… / Me gustan…', '', {quiz:['I like Spanish classes.', 'Me gustan las clases de español.'], template:true}],
+ ['and', 'y'], ['but', 'pero'], ['because', 'porque'], ['or', 'o'],
+ ['I like both.', 'Me gustan los dos.'],
+ ['I don’t like _____ or _____. / I like neither _____ nor _____.', 'No me gusta _____ ni _____. / No me gustan _____ ni _____.', '', {quiz:['I don’t like basketball or homework.', 'No me gusta el baloncesto ni la tarea.'], en:['I like neither basketball nor homework.','I don’t like either basketball or homework.'], template:true}],
+ ['I love…', 'Me encanta… / Me encantan…', '', {quiz:['I love Spanish classes.', 'Me encantan las clases de español.'], template:true}],
+ ['I hate…', 'Yo odio…', '', {quiz:['I hate homework.', 'Yo odio la tarea.'], es:['Odio la tarea.'], template:true}],
+ ['I also like it/them.', 'Me gusta también. / Me gustan también.', '', {quiz:['I also like basketball.', 'Me gusta el baloncesto también.'], es:['También me gusta el baloncesto.','Me gusta también el baloncesto.'], en:['I like basketball too.','I like basketball as well.'], template:true}],
+ ['I don’t like it/them either.', 'Tampoco me gusta. / Tampoco me gustan.', '', {quiz:['I don’t like homework either.', 'Tampoco me gusta la tarea.'], es:['No me gusta la tarea tampoco.'], template:true}],
+ ['I don’t like it/them at all.', 'No me gusta para nada. / No me gustan para nada.', '', {quiz:['I don’t like Spanish classes at all.', 'No me gustan las clases de español para nada.'], template:true}],
+ ['I like it/them a lot.', 'Me gusta muchísimo. / Me gustan muchísimo.', '', {quiz:['I like Spanish classes a lot.', 'Me gustan muchísimo las clases de español.'], es:['Me gustan las clases de español muchísimo.'], en:['I really like Spanish classes.','I like Spanish classes very much.'], template:true}],
+ ['Do you like…?', '¿Te gusta…?', '', {quiz:['Do you like basketball?', '¿Te gusta el baloncesto?'], template:true}],
+ ['I like basketball.', 'Me gusta el baloncesto.'],
+ ['I don’t like homework at all.', 'No me gusta la tarea para nada.'],
+ ['I love Spanish class.', 'Me encanta la clase de español.'],
+ ['I like basketball, but I don’t like homework.', 'Me gusta el baloncesto, pero no me gusta la tarea.'],
+ ['I don’t like basketball or homework.', 'No me gusta el baloncesto ni la tarea.', '', {en:['I like neither basketball nor homework.','I don’t like either basketball or homework.']}]
+];
+const OPINIONS_NOTE='Use gusta or encanta with a singular noun or an infinitive (an action); use gustan or encantan with plural nouns. The choice depends on the thing liked. Review shows both forms; quizzes use complete sentences for these templates. The plural practice examples use las clases de español (Spanish classes).';
+function practiceCard(setId,id){const card=SETS[setId].cards[id];return card[3]?.quiz || card;}
+function opinionEnglish(text){return normalize(text).replace(/\bdon't\b/g,'do not');}
+const SETS = {everyday:{name:'Everyday Spanish',cards:VOCAB},personal:{name:'Personal Information',cards:PERSONAL},feelings:{name:'Feelings',cards:FEELINGS},opinions:{name:'Likes, Dislikes & Opinions',cards:OPINIONS}};
 const KEY = 'hola-vocabulary-v1';
 function normalize(value) { return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[.,!?¡¿…]/g,'').replace(/[’‘]/g,"'").replace(/\s*\/\s*/g,'/').trim().replace(/\s+/g,' '); }
 function templateMatches(template, answer){
@@ -156,7 +184,12 @@ function templateMatches(template, answer){
  return new RegExp('^'+pattern+'$','u').test(input);
 }
 function grade(id, answer, direction, setId='everyday') {
- const card=SETS[setId].cards[id];
+ const card=practiceCard(setId,id);
+ if(setId==='opinions'){
+  const meta=OPINIONS[id][3] || {};
+  const candidates=[card[direction==='es'?1:0],...(meta[direction] || [])];
+  return candidates.some(text=>direction==='en'?opinionEnglish(text)===opinionEnglish(answer):normalize(text)===normalize(answer));
+ }
  const expected=direction==='es' && setId==='everyday' && id===3 ? ['Encantado','Encantada','Encantado / Encantada'] : direction==='es' && setId==='personal' && id===7 ? ['Soy mexicano.','Soy mexicana.','Soy mexicano/mexicana.'] : [card[direction==='es'?1:0]];
  if(setId==='feelings'){
   if(direction==='es' && id>=6 && id<=13)expected.push(...card[1].replace(/^…/,'').split('/').map(word=>'…'+word));
@@ -218,6 +251,7 @@ function audioButton(text){const button=document.createElement('button');button.
 function renderHistory(){$('history').replaceChildren();if(!history.length){const li=document.createElement('li');li.textContent='Finish a round to see your scores here.';$('history').append(li);}history.forEach(h=>{const li=document.createElement('li');li.textContent=`${new Date(h.date).toLocaleDateString()} · ${SETS[h.setId || 'everyday'].name} · ${h.correct}/${h.total} · ${Math.round(h.correct/h.total*100)}% · ${h.direction==='es'?'English → Spanish':'Spanish → English'}${h.kind==='missed'?' · Missed cards':''}`;$('history').append(li);});}
 function render(focus=false){
  const set=SETS[state.setId];
+ $('lesson-note').hidden=state.setId!=='opinions';$('lesson-note').textContent=state.setId==='opinions'?OPINIONS_NOTE:'';
  $('study-set').value=state.setId;$('set-heading').textContent=`${set.name} · ${set.cards.length} phrases`;
  renderVocabulary();
  renderMomentum();
@@ -227,9 +261,15 @@ function render(focus=false){
  $('correct').textContent=c.correct;$('incorrect').textContent=c.incorrect;$('remaining').textContent=state.order.length-c.answered;$('percent').textContent=pct+'%';$('progress-fill').style.width=(c.answered/state.order.length*100)+'%';const bar=document.querySelector('[role="progressbar"]');bar.setAttribute('aria-valuemax',state.order.length);bar.setAttribute('aria-valuenow',c.answered);
  $('quiz').hidden=state.complete;$('summary').hidden=!state.complete;
  if(state.complete){$('final-percent').textContent=pct+'%';$('final-detail').textContent=`${c.correct} correct · ${c.incorrect} incorrect · ${state.order.length} phrases practiced`;$('missed').disabled=c.incorrect===0;if(focus&&!reviewing)$('summary').focus();}
- else {const id=state.order[state.index],card=set.cards[id];$('position').textContent=`Card ${state.index+1} of ${state.order.length}`;$('round-kind').textContent=state.kind==='missed'?'Missed-card practice':set.name;$('prompt').textContent=card[state.direction==='es'?0:1];$('prompt').lang=state.direction==='es'?'en':'es';$('hint').textContent=state.direction==='es'&&card[2]?card[2]:state.setId==='personal'&&/(?:\.{3}|___)/.test(card[0])?(/^(?:\.{3})/.test(card[0])?'Translate the fragment, or use it in a phrase.':'Endings after ellipses are optional. Fill any blanks with your own words.') :'';$('hint').hidden=!$('hint').textContent;$('answer-label').textContent=`Your ${state.direction==='es'?'Spanish':'English'} translation`;$('answer').lang=state.direction;$('answer').value=state.draft;$('answer').disabled=!!state.feedback;$('submit').textContent=state.feedback?(state.index===state.order.length-1?'See results →':'Next card →'):'Check answer';$('unknown').hidden=!!state.feedback;$('retry').hidden=!state.feedback;
+ else {const id=state.order[state.index],card=practiceCard(state.setId,id);$('position').textContent=`Card ${state.index+1} of ${state.order.length}`;$('round-kind').textContent=state.kind==='missed'?'Missed-card practice':set.name;$('prompt').textContent=card[state.direction==='es'?0:1];$('prompt').lang=state.direction==='es'?'en':'es';$('hint').textContent=state.direction==='es'&&card[2]?card[2]:state.setId==='personal'&&/(?:\.{3}|___)/.test(card[0])?(/^(?:\.{3})/.test(card[0])?'Translate the fragment, or use it in a phrase.':'Endings after ellipses are optional. Fill any blanks with your own words.') :'';$('hint').hidden=!$('hint').textContent;$('answer-label').textContent=`Your ${state.direction==='es'?'Spanish':'English'} translation`;$('answer').lang=state.direction;$('answer').value=state.draft;$('answer').disabled=!!state.feedback;$('submit').textContent=state.feedback?(state.index===state.order.length-1?'See results →':'Next card →'):'Check answer';$('unknown').hidden=!!state.feedback;$('retry').hidden=!state.feedback;
  const panel=$('feedback');panel.replaceChildren();panel.hidden=!state.feedback;
- if(state.feedback){const f=state.feedback;panel.className='feedback'+(f.correct?'':' wrong');const heading=document.createElement('h3');heading.textContent=f.correct?'¡Muy bien! That’s correct.':'Keep going. You’re learning.';panel.append(heading);const entered=document.createElement('p');entered.textContent=f.skipped?'You chose “I don’t know.”':`You entered: “${f.answer}”`;panel.append(entered);const label=document.createElement('p');label.textContent=state.direction==='es'?'Correct Spanish:':'Correct English:';const correct=document.createElement('p');correct.className='correct-answer';correct.lang=state.direction;correct.textContent=card[state.direction==='es'?1:0];panel.append(label,correct);if(state.direction==='en'){const spanish=document.createElement('p');spanish.lang='es';spanish.textContent=card[1];panel.append(spanish);}panel.append(audioButton(card[1]));if(f.practice){const note=document.createElement('p');note.className='note';note.textContent='Practice try — your first-answer score stays the same.';panel.append(note);}}
+ if(state.feedback){const f=state.feedback;panel.className='feedback'+(f.correct?'':' wrong');const heading=document.createElement('h3');heading.textContent=f.correct?'¡Muy bien! That’s correct.':'Keep going. You’re learning.';panel.append(heading);const entered=document.createElement('p');entered.textContent=f.skipped?'You chose “I don’t know.”':`You entered: “${f.answer}”`;panel.append(entered);const label=document.createElement('p');label.textContent=state.direction==='es'?'Correct Spanish:':'Correct English:';const correct=document.createElement('p');correct.className='correct-answer';correct.lang=state.direction;correct.textContent=card[state.direction==='es'?1:0];panel.append(label,correct);
+ if(f.correct && state.direction==='es'){
+  const typed=f.answer.toLowerCase().normalize('NFC').split(/\s+/);
+  const reminders=card[1].match(/[\p{L}]+/gu)?.filter(word=>/[áéíóúüñ]/i.test(word)&&typed.some(token=>normalize(token)===normalize(word)&&!token.includes(word.toLowerCase()))) || [];
+  if(reminders.length){const tip=document.createElement('p');tip.className='note';tip.textContent='Correct! Spelling reminder: '+[...new Set(reminders)].join(', ')+'. Accents do not affect your score.';panel.append(tip);}
+ }
+ if(state.direction==='en'){const spanish=document.createElement('p');spanish.lang='es';spanish.textContent=card[1];panel.append(spanish);}panel.append(audioButton(card[1]));if(f.practice){const note=document.createElement('p');note.className='note';note.textContent='Practice try — your first-answer score stays the same.';panel.append(note);}}
  if(focus&&!reviewing)(state.feedback?$('submit'):$('answer')).focus({preventScroll:!!state.feedback});
  }renderHistory();save();
 }
@@ -242,8 +282,8 @@ $('direction').onchange=()=>{state=makeRound($('direction').value,undefined,'ful
 $('study-set').onchange=()=>selectSet($('study-set').value);
 $('new-round').onclick=()=>start();$('missed').onclick=()=>start(state.order.filter(id=>state.results[id]===false),'missed');$('review-button').onclick=showReview;$('review-end').onclick=showReview;$('back').onclick=()=>{reviewing=false;render(true);};
 function renderVocabulary(){
- const set=SETS[state.setId];$('review-set').textContent=set.name;$('review-title').textContent=`All ${set.cards.length} phrases.`;$('vocabulary').replaceChildren();
- set.cards.forEach(card=>{const li=document.createElement('li'),wrap=document.createElement('div'),english=document.createElement('span'),spanish=document.createElement('strong');english.textContent=card[0];spanish.textContent=card[1];spanish.lang='es';wrap.append(english,spanish);if(card[2]){const hint=document.createElement('small');hint.textContent=card[2];wrap.append(hint);}li.append(wrap,audioButton(card[1]));$('vocabulary').append(li);});
+ const set=SETS[state.setId];$('review-set').textContent=set.name;$('review-title').textContent=`All ${set.cards.length} phrases.`;$('vocabulary').replaceChildren();$('review-note').hidden=state.setId!=='opinions';$('review-note').textContent=state.setId==='opinions'?OPINIONS_NOTE:'';
+ set.cards.forEach(card=>{const li=document.createElement('li'),wrap=document.createElement('div'),english=document.createElement('span'),spanish=document.createElement('strong');english.textContent=card[0];spanish.textContent=card[1];spanish.lang='es';wrap.append(english,spanish);if(state.setId==='opinions' && card[3]?.template){const context=document.createElement('small');context.textContent='Template — complete practice example: '+card[3].quiz[1]+' → '+card[3].quiz[0];wrap.append(context);}if(card[2]){const hint=document.createElement('small');hint.textContent=card[2];wrap.append(hint);}li.append(wrap,audioButton(card[1]));$('vocabulary').append(li);});
 }
 render();
 </script>
