@@ -75,6 +75,7 @@ html{overflow-y:scroll;scrollbar-gutter:stable}
 <div class="eyebrow" id="set-heading">Everyday Spanish · 24 phrases</div><h1>Find your words.</h1><p class="intro">Read it. Type it. Make it stick.</p>
 <div class="toolbar"><label for="study-set">Study set</label><select id="study-set"><option value="everyday">Everyday Spanish</option><option value="personal">Personal Information</option><option value="feelings">Feelings</option><option value="opinions">Likes, Dislikes &amp; Opinions</option></select></div>
 <div class="toolbar"><label for="direction">Practice direction</label><select id="direction"><option value="es">English → Spanish</option><option value="en">Spanish → English</option></select></div>
+<label id="advanced-control" hidden style="display:flex;align-items:center;gap:12px;min-height:48px;margin-bottom:16px"><input type="checkbox" id="advanced" style="width:24px;height:24px"> Advanced — complete sentences</label>
 <p class="note" id="lesson-note" hidden></p>
 <div class="stats" aria-label="Round statistics"><div class="stat"><strong id="correct">0</strong><span>Correct</span></div><div class="stat"><strong id="incorrect">0</strong><span>Incorrect</span></div><div class="stat"><strong id="remaining">24</strong><span>Remaining</span></div><div class="stat"><strong id="percent">0%</strong><span>Accuracy</span></div></div>
 <div class="progress" role="progressbar" aria-label="Round progress" aria-valuemin="0" aria-valuemax="24" aria-valuenow="0"><div id="progress-fill"></div></div>
@@ -160,10 +161,19 @@ const OPINIONS = [
  ['I like basketball, but I don’t like homework.', 'Me gusta el baloncesto, pero no me gusta la tarea.'],
  ['I don’t like basketball or homework.', 'No me gusta el baloncesto ni la tarea.', '', {en:['I like neither basketball nor homework.','I don’t like either basketball or homework.']}]
 ];
-const OPINIONS_NOTE='Use gusta or encanta with a singular noun or an infinitive (an action); use gustan or encantan with plural nouns. The choice depends on the thing liked. Review shows both forms; quizzes use complete sentences for these templates. The plural practice examples use las clases de español (Spanish classes).';
-function practiceCard(setId,id){const card=SETS[setId].cards[id];return card[3]?.quiz || card;}
+const OPINIONS_NOTE='Use gusta or encanta with a singular noun or an infinitive (an action); use gustan or encantan with plural nouns. The choice depends on the thing liked. Basic uses worksheet phrases; Advanced uses complete sentences. The plural practice examples use las clases de español (Spanish classes).';
+const OPINIONS_BASIC=OPINIONS.slice(0,18).map(card=>card.slice(0,2));
+OPINIONS_BASIC[5][1]='Me gustan…';
+OPINIONS_BASIC[11][1]='No me gusta(n) _____ ni _____.';
+OPINIONS_BASIC[12][1]='Me encanta(n)…';
+OPINIONS_BASIC[14][1]='Me gusta(n) también.';
+OPINIONS_BASIC[15][1]='Tampoco me gusta(n).';
+OPINIONS_BASIC[16][1]='No me gusta(n) para nada.';
+OPINIONS_BASIC[17][1]='Me gusta(n) muchísimo.';
+function practiceCard(setId,id){const card=SETS[setId].cards[id];return setId==='opinions'?card:card[3]?.quiz || card;}
+function isOpinions(id){return id==='opinions'||id==='opinionsAdvanced';}
 function opinionEnglish(text){return normalize(text).replace(/\bdon't\b/g,'do not');}
-const SETS = {everyday:{name:'Everyday Spanish',cards:VOCAB},personal:{name:'Personal Information',cards:PERSONAL},feelings:{name:'Feelings',cards:FEELINGS},opinions:{name:'Likes, Dislikes & Opinions',cards:OPINIONS}};
+const SETS = {everyday:{name:'Everyday Spanish',cards:VOCAB},personal:{name:'Personal Information',cards:PERSONAL},feelings:{name:'Feelings',cards:FEELINGS},opinions:{name:'Likes, Dislikes & Opinions',cards:OPINIONS_BASIC},opinionsAdvanced:{name:'Likes, Dislikes & Opinions — Advanced',cards:OPINIONS}};
 const KEY = 'hola-vocabulary-v1';
 function normalize(value) { return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[.,!?¡¿…]/g,'').replace(/[’‘]/g,"'").replace(/\s*\/\s*/g,'/').trim().replace(/\s+/g,' '); }
 function templateMatches(template, answer){
@@ -186,6 +196,13 @@ function templateMatches(template, answer){
 function grade(id, answer, direction, setId='everyday') {
  const card=practiceCard(setId,id);
  if(setId==='opinions'){
+  let answers=card[direction==='es'?1:0].split(' / ');
+  answers=answers.flatMap(text=>text.includes('(n)')?[text.replace('(n)',''),text.replace('(n)','n')]:[text]);
+  if(direction==='en')answers=answers.flatMap(text=>text.includes('it/them')?[text.replace('it/them','it'),text.replace('it/them','them')]:[text]);
+  const clean=text=>(direction==='en'?opinionEnglish(text):normalize(text)).replace(/_+/g,' ').replace(/\s+/g,' ').trim();
+  return answers.some(text=>clean(text)===clean(answer)||templateMatches(text,answer));
+ }
+ if(setId==='opinionsAdvanced'){
   const meta=OPINIONS[id][3] || {};
   const candidates=[card[direction==='es'?1:0],...(meta[direction] || [])];
   return candidates.some(text=>direction==='en'?opinionEnglish(text)===opinionEnglish(answer):normalize(text)===normalize(answer));
@@ -203,6 +220,16 @@ function validRound(s) { const size=s&&Object.hasOwn(SETS,s.setId || 'everyday')
 let state, history=[], rounds={}, storageOK=true, reviewing=false;
 try {
  const saved=JSON.parse(localStorage.getItem(KEY));
+ if(saved && !saved.basicAdvanced){
+  // Earlier opinions rounds used complete sentences: keep them under Advanced.
+  if(saved.rounds?.opinions){saved.rounds.opinionsAdvanced={...saved.rounds.opinions,setId:'opinionsAdvanced'};delete saved.rounds.opinions;}
+  if(saved.state?.setId==='opinions'){
+   saved.rounds=saved.rounds || {};saved.rounds.opinionsAdvanced={...saved.state,setId:'opinionsAdvanced'};
+   saved.state=makeRound(saved.state.direction,undefined,'full','opinions');
+  }
+  if(Array.isArray(saved.history))saved.history=saved.history.map(h=>h.setId==='opinions'?{...h,setId:'opinionsAdvanced'}:h);
+ }
+
  if(saved){
   for(const id of Object.keys(SETS)){const round=saved.rounds?.[id];if(validRound(round)&&round.setId===id)rounds[id]=round;}
   if(validRound(saved.state)){state={...saved.state,setId:saved.state.setId || 'everyday'};rounds[state.setId]=state;}
@@ -224,7 +251,7 @@ function refreshSavedFeedback(round){
 }
 for(const round of new Set([state,...Object.values(rounds)]))refreshSavedFeedback(round);
 const $=id=>document.getElementById(id);
-function save(){rounds[state.setId]=state;try{localStorage.setItem(KEY,JSON.stringify({state,history,rounds}));storageOK=true;}catch{storageOK=false;}$('storage-note').hidden=storageOK;$('save-status').textContent=storageOK?'Progress saved on this browser':'Practicing without saved progress';}
+function save(){rounds[state.setId]=state;try{localStorage.setItem(KEY,JSON.stringify({state,history,rounds,basicAdvanced:1}));storageOK=true;}catch{storageOK=false;}$('storage-note').hidden=storageOK;$('save-status').textContent=storageOK?'Progress saved on this browser':'Practicing without saved progress';}
 function selectSet(id){if(!Object.hasOwn(SETS,id))return;save();state=rounds[id] || makeRound(state.direction,undefined,'full',id);reviewing=false;render(true);}
 function counts(){const values=Object.values(state.results);return {correct:values.filter(Boolean).length,incorrect:values.filter(v=>!v).length,answered:values.length};}
 // Derive momentum from saved first attempts, so old saves work without migration.
@@ -251,8 +278,8 @@ function audioButton(text){const button=document.createElement('button');button.
 function renderHistory(){$('history').replaceChildren();if(!history.length){const li=document.createElement('li');li.textContent='Finish a round to see your scores here.';$('history').append(li);}history.forEach(h=>{const li=document.createElement('li');li.textContent=`${new Date(h.date).toLocaleDateString()} · ${SETS[h.setId || 'everyday'].name} · ${h.correct}/${h.total} · ${Math.round(h.correct/h.total*100)}% · ${h.direction==='es'?'English → Spanish':'Spanish → English'}${h.kind==='missed'?' · Missed cards':''}`;$('history').append(li);});}
 function render(focus=false){
  const set=SETS[state.setId];
- $('lesson-note').hidden=state.setId!=='opinions';$('lesson-note').textContent=state.setId==='opinions'?OPINIONS_NOTE:'';
- $('study-set').value=state.setId;$('set-heading').textContent=`${set.name} · ${set.cards.length} phrases`;
+ $('lesson-note').hidden=!isOpinions(state.setId);$('lesson-note').textContent=state.setId==='opinionsAdvanced'?OPINIONS_NOTE:state.setId==='opinions'?'Basic: practice the worksheet phrases. Dots and blanks do not need to be typed. For (n), either verb form is accepted. Turn on Advanced for complete sentences.':'';
+ $('study-set').value=isOpinions(state.setId)?'opinions':state.setId;$('advanced-control').hidden=!isOpinions(state.setId);$('advanced').checked=state.setId==='opinionsAdvanced';$('set-heading').textContent=`${set.name} · ${set.cards.length} phrases`;
  renderVocabulary();
  renderMomentum();
  $('answer').setCustomValidity('');
@@ -279,11 +306,12 @@ function start(ids,kind='full'){state=makeRound(state.direction,ids,kind,state.s
 function showReview(){reviewing=true;render();$('back').focus();}
 $('answer-form').onsubmit=e=>{e.preventDefault();submit();};$('answer').oninput=()=>{$('answer').setCustomValidity('');state.draft=$('answer').value;save();};$('unknown').onclick=()=>submit(true);$('retry').onclick=()=>{state.feedback=null;state.draft='';render(true);};
 $('direction').onchange=()=>{state=makeRound($('direction').value,undefined,'full',state.setId);render(true);};
+$('advanced').onchange=()=>selectSet($('advanced').checked?'opinionsAdvanced':'opinions');
 $('study-set').onchange=()=>selectSet($('study-set').value);
 $('new-round').onclick=()=>start();$('missed').onclick=()=>start(state.order.filter(id=>state.results[id]===false),'missed');$('review-button').onclick=showReview;$('review-end').onclick=showReview;$('back').onclick=()=>{reviewing=false;render(true);};
 function renderVocabulary(){
- const set=SETS[state.setId];$('review-set').textContent=set.name;$('review-title').textContent=`All ${set.cards.length} phrases.`;$('vocabulary').replaceChildren();$('review-note').hidden=state.setId!=='opinions';$('review-note').textContent=state.setId==='opinions'?OPINIONS_NOTE:'';
- set.cards.forEach(card=>{const li=document.createElement('li'),wrap=document.createElement('div'),english=document.createElement('span'),spanish=document.createElement('strong');english.textContent=card[0];spanish.textContent=card[1];spanish.lang='es';wrap.append(english,spanish);if(state.setId==='opinions' && card[3]?.template){const context=document.createElement('small');context.textContent='Template — complete practice example: '+card[3].quiz[1]+' → '+card[3].quiz[0];wrap.append(context);}if(card[2]){const hint=document.createElement('small');hint.textContent=card[2];wrap.append(hint);}li.append(wrap,audioButton(card[1]));$('vocabulary').append(li);});
+ const set=SETS[state.setId];$('review-set').textContent=set.name;$('review-title').textContent=`All ${set.cards.length} phrases.`;$('vocabulary').replaceChildren();$('review-note').hidden=!isOpinions(state.setId);$('review-note').textContent=isOpinions(state.setId)?OPINIONS_NOTE:'';
+ set.cards.forEach(card=>{const li=document.createElement('li'),wrap=document.createElement('div'),english=document.createElement('span'),spanish=document.createElement('strong');english.textContent=card[0];spanish.textContent=card[1];spanish.lang='es';wrap.append(english,spanish);if(state.setId==='opinionsAdvanced' && card[3]?.template){const context=document.createElement('small');context.textContent='Template — complete practice example: '+card[3].quiz[1]+' → '+card[3].quiz[0];wrap.append(context);}if(card[2]){const hint=document.createElement('small');hint.textContent=card[2];wrap.append(hint);}li.append(wrap,audioButton(card[1]));$('vocabulary').append(li);});
 }
 render();
 </script>
