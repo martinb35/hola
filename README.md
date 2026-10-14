@@ -8,7 +8,7 @@ The GitHub Pages version is at https://martinb35.github.io/hola/. Pages publishe
 - **I don’t know** reveals the answer and counts as incorrect. **Try again** lets you practice that card without changing its first-answer score.
 - Accuracy is correct first answers divided by all graded cards. Remaining means cards not yet graded.
 - The cartoon thermometer tracks consecutive correct first answers in the current round. Wrong answers or “I don’t know” reset it; practice retries don’t change it. Fireworks celebrate streaks of 5, 10, 15, and 20. Starting a round resets momentum, while reopening the file restores it. On smaller screens the thermometer and fireworks sit above the centered quiz. Reduced-motion settings replace animated fireworks with a still celebration.
-- Choose **Everyday Spanish** (the original 24 phrases) **Personal Information** (17 phrases), or **Feelings** (17 phrases) under **Study set**. Each set remembers its own round, direction, typed draft, feedback, and streak. Switching back resumes that set. Existing saved progress and scores are preserved automatically.
+- Choose **Everyday Spanish** (the original 24 phrases), **Personal Information** (17 phrases), **Feelings** (17 phrases), **Personality** (22 phrases), or **Likes, Dislikes & Opinions** under **Study set**. Each set remembers its own round, direction, typed draft, feedback, and streak. Switching back resumes that set. Existing saved progress and scores are preserved automatically.
 - At the end, retry missed cards, start a fresh shuffled round, or review every phrase in the selected set. Missed-card rounds have their own scores.
 - Use **Practice direction** to switch languages. Changing direction starts a new round. English → Spanish is the initial default.
 - **Vocabulary** opens the complete phrase list; **Back to practice** resumes your card. Quiz feedback reveals answers only after submission; the review list is available for studying at any time.
@@ -24,6 +24,8 @@ In Personal Information, **Soy mexicano** and **Soy mexicana** are both accepted
 Developer verification: run `node tests.cjs` (Node is only needed for tests, never for the app).
 
 **Feelings** accepts either gender form (for example, cansado or cansada). In reverse practice, either listed English alternative works, such as calm or relaxed; formal/informal labels do not need to be typed. Ellipses and supplied endings remain optional.
+
+**Personality** accepts either gender form where shown (for example, activo or activa), and either choice in optional expressions such as **(No) soy muy…**.
 
 **Likes, Dislikes & Opinions** includes the 18 worksheet entries, a singular question variant, and five complete examples (24 cards). Review labels templates and shows both gusta/gustan and encanta/encantan. Quizzes use complete sentences with explicit singular or plural nouns for agreement, rather than asking you to guess from “I like…” alone. Use gusta/encanta with a singular noun or infinitive and gustan/encantan with plural nouns: the thing liked determines the form. Listed English equivalents and do not/don’t are accepted. Correct Spanish answers with missing accents receive a spelling reminder without losing points. Each category still keeps its own progress.
 
