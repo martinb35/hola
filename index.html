@@ -44,6 +44,7 @@ html{overflow-y:scroll;scrollbar-gutter:stable}
 }
 @media(max-width:540px){.extras{padding:0 16px;gap:4px}.momentum{grid-template-columns:54px 1fr;column-gap:5px}.thermometer{width:52px;height:140px}.momentum-title{font-size:11px}.streak-caption{font-size:12px}.heat-label{font-size:13px}.next-milestone{font-size:11px}.celebration-message{font-size:18px}}
 @media(prefers-reduced-motion:reduce){#mercury{transition:none}.spark{animation:none;opacity:1;transform:translate(var(--x),var(--y))}.celebration-show{animation:none}}
+.feedback-link{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:10px 14px;border:1px solid #cbd7d1;border-radius:12px;background:white;color:#193a36;font-weight:650;text-decoration:none;text-align:center}.feedback-link:hover{background:#eaf0eb}.feedback-link:focus-visible{outline:3px solid #588b20;outline-offset:4px}
 </style>
 </head>
 <body>
@@ -85,7 +86,7 @@ html{overflow-y:scroll;scrollbar-gutter:stable}
 <section class="card" id="summary" hidden tabindex="-1"><div class="eyebrow">Round complete</div><h2>Practice pays off.</h2><div class="score" id="final-percent"></div><p id="final-detail"></p><div class="actions"><button class="primary" id="missed">Retry missed cards</button><button id="new-round">New randomized round</button><button id="review-end">Review all vocabulary</button></div><p class="note">Scores use your first answer to each card. Extra tries are for practice.</p></section>
 </section>
 <section class="card" id="review" hidden><div class="review-heading"><div><div class="eyebrow" id="review-set">Your phrase collection</div><h1 id="review-title">All 24 phrases.</h1></div><button id="back">Back to practice</button></div><p class="note" id="review-note" hidden></p><ul class="review-list" id="vocabulary"></ul></section>
-<div class="footer"><span id="save-status">Progress saved on this browser</span><span>Small steps, every day. ¡Vamos!</span></div><p id="storage-note" class="note" hidden>Saving is unavailable in this browser. You can still practice; keep this page open to keep your progress.</p>
+<div class="footer"><span id="save-status">Progress saved on this browser</span><span>Small steps, every day. ¡Vamos!</span><a class="feedback-link" href="https://github.com/martinb35/hola/issues/new" target="_blank" rel="noopener noreferrer">Request a feature or report a bug</a></div><p id="storage-note" class="note" hidden>Saving is unavailable in this browser. You can still practice; keep this page open to keep your progress.</p>
 <details><summary>Recent scores</summary><ol class="history" id="history"></ol></details>
 </main>
 <script>

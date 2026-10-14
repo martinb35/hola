@@ -2,7 +2,8 @@
 const fs = require('node:fs');
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
-const source = fs.readFileSync(__dirname + '/index.html', 'utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
+const html = fs.readFileSync(__dirname + '/index.html', 'utf8');
+const source = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 function boot(stored, blocked=false) {
   const nodes = new Map();
   function node(){return {value:'',textContent:'',hidden:false,disabled:false,style:{},children:[],attributes:{},append(...items){this.children.push(...items);},replaceChildren(){this.children=[];},setAttribute(k,v){this.attributes[k]=v;},focus(){this.focused=true;},setCustomValidity(v){this.validation=v;},reportValidity(){}};}
@@ -12,6 +13,7 @@ function boot(stored, blocked=false) {
 }
 let checks=0;
 function test(label, fn){fn();checks++;console.log('PASS '+label);}
+test('feedback link opens GitHub issue creation safely',()=>{const link=html.match(/<a class="feedback-link"([^>]*)>([^<]+)<\/a>/);assert.ok(link);assert.match(link[1],/href="https:\/\/github\.com\/martinb35\/hola\/issues\/new"/);assert.match(link[1],/target="_blank"/);assert.match(link[1],/rel="noopener noreferrer"/);assert.equal(link[2],'Request a feature or report a bug');});
 const app=boot();
 test('exactly 24 vocabulary pairs',()=>assert.equal(app.run('VOCAB.length'),24));
 test('all canonical answers pass in both directions',()=>assert.equal(app.run("VOCAB.every((card,id)=>grade(id,card[1],'es')&&grade(id,card[0],'en'))"),true));
