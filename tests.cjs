@@ -156,6 +156,20 @@ test('Feelings progress survives reload and switching lessons',()=>{
  b.run("selectSet('feelings');submit()");assert.equal(b.run('history[0].setId'),'feelings');assert.equal(b.nodes.get('final-percent').textContent,'100%');
 });
 
+test('Personality includes all 22 pairs and accepts both gender forms and optional words',()=>{
+ const a=boot();a.run("selectSet('personality')");
+ assert.equal(a.run('PERSONALITY.length'),22);assert.equal(a.run('state.order.length'),22);assert.equal(a.nodes.get('vocabulary').children.length,22);
+ assert.equal(a.nodes.get('set-heading').textContent,'Personality · 22 phrases');
+ assert.equal(a.run("PERSONALITY.every((card,id)=>grade(id,card[0],'en','personality')&&grade(id,card[1],'es','personality'))"),true);
+ assert.equal(a.run("Object.entries(PERSONALITY_SPANISH).every(([id,forms])=>forms.every(form=>grade(Number(id),form,'es','personality')))"),true);
+ for(const [id,answers,dir] of [[7,['Soy muy joven','No soy muy joven'],'es'],[7,['I am very young','I am not very young'],'en'],[17,['A mí tampoco','A mí tampoco me gusta'],'es'],[17,['Me neither','I also don’t like it'],'en']])for(const answer of answers)assert.equal(a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','personality')`),true,answer);
+ assert.equal(a.run("grade(1,'actuvo','es','personality')"),false);
+});
+test('Personality progress persists independently across reloads and study sets',()=>{
+ const a=boot();a.run("selectSet('personality');state=makeRound('es',[1],'full','personality');$('answer').value='activa';submit();$('answer').value='draft';$('answer').oninput();selectSet('feelings')");
+ const b=boot(a.saved());b.run("selectSet('personality')");assert.equal(b.run('state.setId'),'personality');assert.equal(b.run('counts().correct'),1);assert.equal(b.nodes.get('answer').value,'draft');
+});
+
 test('Opinions contains the 18 entries plus six practice variants and examples',()=>{
  const a=boot();a.run("selectSet('opinionsAdvanced')");assert.equal(a.run('OPINIONS.length'),24);assert.equal(a.run('state.order.length'),24);assert.equal(a.nodes.get('vocabulary').children.length,24);
  assert.equal(a.run("OPINIONS.every((_,id)=>['es','en'].every(dir=>grade(id,practiceCard('opinionsAdvanced',id)[dir==='es'?1:0],dir,'opinionsAdvanced')))"),true);
