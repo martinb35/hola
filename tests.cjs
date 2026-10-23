@@ -224,4 +224,55 @@ test('existing complete-sentence progress migrates to Advanced while Basic becom
  const a=boot();a.run("selectSet('opinionsAdvanced');$('unknown').onclick()");const saved=JSON.parse(a.saved());delete saved.basicAdvanced;saved.state.setId='opinions';saved.rounds.opinions={...saved.state};delete saved.rounds.opinionsAdvanced;
  const b=boot(JSON.stringify(saved));assert.equal(b.run('state.setId'),'opinions');assert.equal(b.run('state.order.length'),18);b.run("selectSet('opinionsAdvanced')");assert.equal(b.run('counts().incorrect'),1);assert.equal(b.run('state.feedback.skipped'),true);
 });
+test('Activities & Preferences includes all 17 requested pairs in review and both directions',()=>{
+ const a=boot();a.run("selectSet('activities')");
+ const pairs=[
+  ['What do you like to do?','¿Qué te gusta hacer?'],['What do you prefer to do?','¿Qué prefieres hacer?'],
+  ['I prefer…','Prefiero…'],['to swim','nadar'],['to dance','bailar'],['to listen to music','escuchar música'],
+  ['to hang out with friends','estar con amigos'],['to read','leer'],['to watch TV','mirar la televisión'],
+  ['to go to the movies','ir al cine'],['because I need to…','porque necesito…'],['to study','estudiar'],
+  ['to practice','practicar'],['to relax','relajarme'],['because I am (not)…','porque yo (no) soy…'],
+  ['a good friend (feminine)','una buena amiga'],['a good friend (masculine)','un buen amigo']
+ ];
+ assert.match(html,/<option value="activities">Activities &amp; Preferences<\/option>/);
+ assert.deepEqual(JSON.parse(a.run('JSON.stringify(ACTIVITIES.map(card=>card.slice(0,2)))')),pairs);
+ assert.equal(a.run('state.order.length'),17);assert.equal(a.run('new Set(state.order).size'),17);
+ assert.equal(a.nodes.get('set-heading').textContent,'Activities & Preferences · 17 phrases');
+ assert.equal(a.nodes.get('vocabulary').children.length,17);
+ pairs.forEach(([en,es],id)=>{
+  const review=a.nodes.get('vocabulary').children[id].children[0].children;
+  assert.equal(review[0].textContent,en);assert.equal(review[1].textContent,es);
+  for(const [dir,answer] of [['en',en],['es',es]]){
+   assert.equal(a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','activities')`),true,answer);
+   assert.equal(a.run(`grade(${id},${JSON.stringify(answer.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase())},'${dir}','activities')`),true);
+  }
+ });
+});
+test('Activities accepts optional negatives and endings but rejects typos and wrong gender',()=>{
+ const a=boot();
+ for(const [id,answers,dir] of [
+  [2,['Prefiero','Prefiero nadar'],'es'],[10,['porque necesito','porque necesito estudiar'],'es'],
+  [14,['porque yo soy','porque yo no soy','porque yo no soy un buen amigo'],'es'],
+  [14,['because I am','because I am not','because I am not a good friend'],'en'],
+  [15,['a good friend'],'en'],[16,['a good friend'],'en']
+ ])for(const answer of answers)assert.equal(a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','activities')`),true,answer);
+ for(const [id,answer,dir] of [[0,'Que te gusta','es'],[3,'nadar extra','es'],[5,'escuchar musico','es'],[14,'porque yo no soyy','es'],[15,'un buen amigo','es'],[16,'una buena amiga','es'],[15,'a good friend (masculine)','en']]){
+  assert.equal(a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','activities')`),false,answer);
+ }
+});
+test('Activities keeps independent progress, feedback, missed cards and scores across reloads',()=>{
+ const a=boot();a.run("$('answer').value='existing draft';$('answer').oninput();selectSet('activities');state=makeRound('es',[5],'full','activities');$('answer').value='escuchar musica';submit()");
+ assert.equal(a.nodes.get('feedback').children[3].textContent,'escuchar música');
+ const b=boot(a.saved());assert.equal(b.run('state.setId'),'activities');assert.equal(b.run('counts().correct'),1);
+ b.run("selectSet('everyday')");assert.equal(b.nodes.get('answer').value,'existing draft');
+ b.run("selectSet('activities');submit()");assert.equal(b.run('history[0].setId'),'activities');
+ b.run("start([16]);$('unknown').onclick();submit();$('missed').onclick()");
+ assert.equal(b.run('state.setId'),'activities');assert.equal(b.run('state.order.join()'),'16');
+ b.run("$('answer').value='un buen amigo';submit();submit()");assert.equal(b.nodes.get('final-percent').textContent,'100%');
+ b.run("$('direction').value='en';$('direction').onchange()");
+ assert.equal(b.run('state.order.length'),17);assert.equal(b.run('state.direction'),'en');
+ assert.equal(b.nodes.get('prompt').textContent,b.run('ACTIVITIES[state.order[0]][1]'));
+ b.run("$('answer').value='saved activities draft';$('answer').oninput()");
+ const c=boot(b.saved());assert.equal(c.nodes.get('answer').value,'saved activities draft');
+});
 console.log(`\n${checks} checks passed.`);
