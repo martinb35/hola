@@ -74,7 +74,7 @@ html{overflow-y:scroll;scrollbar-gutter:stable}
 <header><div class="brand"><div class="mark" aria-hidden="true">¡</div><div><strong>¡Hola!</strong><small>A little practice. A lot of progress.</small></div></div><button id="review-button">Vocabulary</button></header>
 <section id="practice">
 <div class="eyebrow" id="set-heading">Everyday Spanish · 24 phrases</div><h1>Find your words.</h1><p class="intro">Read it. Type it. Make it stick.</p>
-<div class="toolbar"><label for="study-set">Study set</label><select id="study-set"><option value="everyday">Everyday Spanish</option><option value="personal">Personal Information</option><option value="feelings">Feelings</option><option value="personality">Personality</option><option value="opinions">Likes, Dislikes &amp; Opinions</option></select></div>
+<div class="toolbar"><label for="study-set">Study set</label><select id="study-set"><option value="everyday">Everyday Spanish</option><option value="personal">Personal Information</option><option value="feelings">Feelings</option><option value="personality">Personality</option><option value="opinions">Likes, Dislikes &amp; Opinions</option><option value="activities">Activities &amp; Preferences</option></select></div>
 <div class="toolbar"><label for="direction">Practice direction</label><select id="direction"><option value="es">English → Spanish</option><option value="en">Spanish → English</option></select></div>
 <label id="advanced-control" hidden style="display:flex;align-items:center;gap:12px;min-height:48px;margin-bottom:16px"><input type="checkbox" id="advanced" style="width:24px;height:24px"> Advanced — complete sentences</label>
 <p class="note" id="lesson-note" hidden></p>
@@ -196,10 +196,29 @@ OPINIONS_BASIC[14][1]='Me gusta(n) también.';
 OPINIONS_BASIC[15][1]='Tampoco me gusta(n).';
 OPINIONS_BASIC[16][1]='No me gusta(n) para nada.';
 OPINIONS_BASIC[17][1]='Me gusta(n) muchísimo.';
+const ACTIVITIES = [
+ ['What do you like to do?', '¿Qué te gusta hacer?'],
+ ['What do you prefer to do?', '¿Qué prefieres hacer?'],
+ ['I prefer…', 'Prefiero…'],
+ ['to swim', 'nadar'],
+ ['to dance', 'bailar'],
+ ['to listen to music', 'escuchar música'],
+ ['to hang out with friends', 'estar con amigos'],
+ ['to read', 'leer'],
+ ['to watch TV', 'mirar la televisión'],
+ ['to go to the movies', 'ir al cine'],
+ ['because I need to…', 'porque necesito…'],
+ ['to study', 'estudiar'],
+ ['to practice', 'practicar'],
+ ['to relax', 'relajarme'],
+ ['because I am (not)…', 'porque yo (no) soy…', '', {es:['porque yo soy…','porque yo no soy…'],en:['because I am…','because I am not…']}],
+ ['a good friend (feminine)', 'una buena amiga', '', {en:['a good friend']}],
+ ['a good friend (masculine)', 'un buen amigo', '', {en:['a good friend']}]
+];
 function practiceCard(setId,id){const card=SETS[setId].cards[id];return setId==='opinions'?card:card[3]?.quiz || card;}
 function isOpinions(id){return id==='opinions'||id==='opinionsAdvanced';}
 function opinionEnglish(text){return normalize(text).replace(/\bdon't\b/g,'do not');}
-const SETS = {everyday:{name:'Everyday Spanish',cards:VOCAB},personal:{name:'Personal Information',cards:PERSONAL},feelings:{name:'Feelings',cards:FEELINGS},personality:{name:'Personality',cards:PERSONALITY},opinions:{name:'Likes, Dislikes & Opinions',cards:OPINIONS_BASIC},opinionsAdvanced:{name:'Likes, Dislikes & Opinions — Advanced',cards:OPINIONS}};
+const SETS = {everyday:{name:'Everyday Spanish',cards:VOCAB},personal:{name:'Personal Information',cards:PERSONAL},feelings:{name:'Feelings',cards:FEELINGS},personality:{name:'Personality',cards:PERSONALITY},opinions:{name:'Likes, Dislikes & Opinions',cards:OPINIONS_BASIC},opinionsAdvanced:{name:'Likes, Dislikes & Opinions — Advanced',cards:OPINIONS},activities:{name:'Activities & Preferences',cards:ACTIVITIES}};
 const KEY = 'hola-vocabulary-v1';
 function normalize(value) { return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[.,!?¡¿…]/g,'').replace(/[’‘]/g,"'").replace(/\s*\/\s*/g,'/').trim().replace(/\s+/g,' '); }
 function templateMatches(template, answer){
@@ -221,6 +240,10 @@ function templateMatches(template, answer){
 }
 function grade(id, answer, direction, setId='everyday') {
  const card=practiceCard(setId,id);
+ if(setId==='activities'){
+  const candidates=[card[direction==='es'?1:0],...(card[3]?.[direction] || [])];
+  return candidates.some(text=>templateMatches(text,answer));
+ }
  if(setId==='personality'){
   let expected=direction==='es'?[...(PERSONALITY_SPANISH[id] || []),card[1]]:[card[0]];
   if(id===7)expected=direction==='es'?[card[1],'Soy muy…','No soy muy…']:[card[0],'I am very…','I am not very…'];
