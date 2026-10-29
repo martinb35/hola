@@ -275,4 +275,46 @@ test('Activities keeps independent progress, feedback, missed cards and scores a
  b.run("$('answer').value='saved activities draft';$('answer').oninput()");
  const c=boot(b.saved());assert.equal(c.nodes.get('answer').value,'saved activities draft');
 });
+test('Languages and Communities includes all 20 requested pairs and accepts filled blanks in both directions',()=>{
+const a=boot();a.run("selectSet('languages')");
+const pairs=[
+ ['Where do they speak Spanish?','¿Dónde se habla español?'],
+ ['They speak Spanish in # countries.','Se habla español en … países.'],
+ ['Do they speak Spanish in Brazil?','¿Se habla español en Brasil?'],
+ ['No, in Brazil they speak Portuguese.','No, en Brasil se habla portugués.'],
+ ['What languages are spoken in…?','¿Qué idiomas hablan en …?'],
+ ['… our school?','… nuestra escuela?'],
+ ['… our class?','… nuestra clase?'],
+ ['Students here speak…','Aquí los estudiantes hablan…'],
+ ['What percentage of people speak Spanish in Washington State?','En el estado de Washington, ¿qué porcentaje de personas habla español?'],
+ ['____% of people speak Spanish here.','El ___ por ciento de personas habla español aquí.'],
+ ['What languages do you speak?','¿Qué idiomas hablas?'],
+ ['Japanese (language)','…japonés'],
+ ['Mandarin Chinese (language)','…chino mandarín'],
+ ['Hindi','…hindi'],
+ ['Russian','…ruso'],
+ ['In my community…','En mi comunidad…'],
+ ['In my school…','En mi escuela…'],
+ ['In my state…','En mi estado…'],
+ ['In my country…','En mi país…'],
+ ['The majority of people speak…','La mayoría de las personas habla…']
+];
+assert.match(html,/<option value="languages">Languages and Communities<\/option>/);
+assert.deepEqual(JSON.parse(a.run('JSON.stringify(LANGUAGES.map(card=>card.slice(0,2)))')),pairs);
+assert.equal(a.run('state.order.length'),20);assert.equal(a.nodes.get('vocabulary').children.length,20);
+assert.equal(a.nodes.get('set-heading').textContent,'Languages and Communities · 20 phrases');
+pairs.forEach(([en,es],id)=>{
+ const review=a.nodes.get('vocabulary').children[id].children[0].children;
+ assert.equal(review[0].textContent,en);assert.equal(review[1].textContent,es);
+ const english=id===1?'They speak Spanish in 20 countries.':id===9?'45% of people speak Spanish here.':en;
+ const spanish=id===1?'Se habla español en 20 países.':id===9?'El 45 por ciento de personas habla español aquí.':es;
+ assert.equal(a.run(`grade(${id},${JSON.stringify(english)},'en','languages')`),true,english);
+ assert.equal(a.run(`grade(${id},${JSON.stringify(spanish)},'es','languages')`),true,spanish);
+});
+});
+test('Languages and Communities progress persists independently',()=>{
+const a=boot();a.run("$('answer').value='everyday draft';$('answer').oninput();selectSet('languages');state=makeRound('es',[1],'full','languages');$('answer').value='Se habla español en 20 países';submit()");
+const b=boot(a.saved());assert.equal(b.run('state.setId'),'languages');assert.equal(b.run('counts().correct'),1);
+b.run("selectSet('everyday')");assert.equal(b.nodes.get('answer').value,'everyday draft');
+});
 console.log(`\n${checks} checks passed.`);
