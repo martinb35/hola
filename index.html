@@ -255,7 +255,7 @@ function templateMatches(template, answer){
  const parts=template.split(/(?:\.{3}|…|_{3,})/).map(normalize);
  const slot="[\\p{L}\\p{N}][\\p{L}\\p{N}\\s'/-]*?";
  let pattern=escape(parts[0]);
- for(let i=1;i<parts.length;i++)pattern+=(parts[i-1]?'\\s+':'')+slot+(parts[i]?'\\s+'+escape(parts[i]):'');
+ for(let i=1;i<parts.length;i++)pattern+=(parts[i-1]?'\\s+':'')+slot+(parts[i]?(/^[\\p{L}\\p{N}]/u.test(parts[i])?'\\s+':'')+escape(parts[i]):'');
  // Ellipses are optional in every set; supplied endings are optional too.
  if(!template.includes('___') && input===normalize(template))return true;
  return new RegExp('^'+pattern+'$','u').test(input);
