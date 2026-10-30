@@ -268,7 +268,7 @@ function grade(id, answer, direction, setId='everyday') {
  }
  if(setId==='languages'){
   const candidates=[card[direction==='es'?1:0],...(card[3]?.[direction] || [])];
-  return candidates.some(text=>templateMatches(text,answer));
+  return candidates.some(text=>templateMatches(text,answer)||text.includes('_')&&normalize(text)===normalize(answer));
  }
  if(setId==='personality'){
   let expected=direction==='es'?[...(PERSONALITY_SPANISH[id] || []),card[1]]:[card[0]];

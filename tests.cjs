@@ -311,6 +311,8 @@ pairs.forEach(([en,es],id)=>{
  assert.equal(a.run(`grade(${id},${JSON.stringify(english)},'en','languages')`),true,english);
  assert.equal(a.run(`grade(${id},${JSON.stringify(spanish)},'es','languages')`),true,spanish);
 });
+assert.equal(a.run("grade(9,'El ___ por ciento de personas habla español aquí.','es','languages')"),true);
+assert.equal(a.run("grade(9,'El por ciento de personas habla español aquí.','es','languages')"),false);
 });
 test('Languages and Communities progress persists independently',()=>{
 const a=boot();a.run("$('answer').value='everyday draft';$('answer').oninput();selectSet('languages');state=makeRound('es',[1],'full','languages');$('answer').value='Se habla español en 20 países';submit()");
