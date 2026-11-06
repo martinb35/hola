@@ -87,7 +87,7 @@ test('templates require filled blanks and correctly spelled fixed words',()=>{
 });
 test('all ellipsis phrases accept bare phrases, literal ellipses, or supplied endings',()=>{
  const a=boot();
- assert.equal(a.run("Object.entries(SETS).every(([setId,set])=>set.cards.every((card,id)=>['es','en'].every(dir=>{const text=card[dir==='es'?1:0];if(setId==='opinions' || card[3]?.quiz || !/(?:\\.{3}|…)$/.test(text))return true;const bare=text.replace(/(?:\\.{3}|…)$/,'');return [bare,text,bare+' Madrid'].every(answer=>grade(id,answer,dir,setId));})))"),true);
+ assert.equal(a.run("Object.entries(SETS).every(([setId,set])=>set.cards.every((card,id)=>['es','en'].every(dir=>{const text=card[dir==='es'?1:0];if(setId==='comparisons' || setId==='opinions' || card[3]?.quiz || !/(?:\\.{3}|…)$/.test(text))return true;const bare=text.replace(/(?:\\.{3}|…)$/,'');return [bare,text,bare+' Madrid'].every(answer=>grade(id,answer,dir,setId));})))"),true);
  a.run("state=makeRound('es',[9],'full','personal');$('answer').value='Vivo en';submit()");
  assert.equal(a.run('state.feedback.correct'),true);
  assert.equal(a.nodes.get('feedback').children[3].textContent,'Vivo en...');
@@ -318,5 +318,26 @@ test('Languages and Communities progress persists independently',()=>{
 const a=boot();a.run("$('answer').value='everyday draft';$('answer').oninput();selectSet('languages');state=makeRound('es',[1],'full','languages');$('answer').value='Se habla español en 20 países';submit()");
 const b=boot(a.saved());assert.equal(b.run('state.setId'),'languages');assert.equal(b.run('counts().correct'),1);
 b.run("selectSet('everyday')");assert.equal(b.nodes.get('answer').value,'everyday draft');
+});
+
+test('Comparisons includes 13 worksheet entries with accents and variants',()=>{
+ const a=boot();a.run("selectSet('comparisons')");assert.equal(a.run('state.order.length'),13);assert.equal(a.nodes.get('vocabulary').children.length,13);
+ assert.equal(a.run("COMPARISONS.every((card,id)=>grade(id,card[0],'en','comparisons')&&grade(id,card[1],'es','comparisons'))"),true);
+ for(const [id,answer] of [[0,'le gusta'],[0,'le gustan'],[1,'les gusta'],[1,'les gustan'],[2,'mas que'],[12,'tiempo libre'],[12,'ocio']])assert.equal(a.run('grade('+id+','+JSON.stringify(answer)+',"es","comparisons")'),true);
+ for(const answer of ['he likes','she likes'])assert.equal(a.run('grade(0,'+JSON.stringify(answer)+',"en","comparisons")'),true);
+ assert.equal(a.run("grade(0,'les gusta','es','comparisons')"),false);
+ assert.equal(a.run("grade(3,'mas que','es','comparisons')"),false);
+});
+test('Comparison templates accept optional placeholders and supplied text in each slot',()=>{
+ const a=boot();
+ for(const [id,answer,dir] of [[4,'A Pedro le gusta leer pero a Jimena le gusta nadar','es'],[4,'Pedro likes reading but Jimena likes swimming','en'],[6,'Es similar a','es'],[7,'It is different from','en'],[9,'El futbol es mas popular en España','es'],[9,'Soccer is more popular in Spain','en'],[9,'es mas popular en','es'],[11,'Leo un promedio de 12 libros en el año','es'],[11,'I read about 12 books a year','en'],[11,'Leo un promedio de libros en el año','es']])assert.equal(a.run('grade('+id+','+JSON.stringify(answer)+','+JSON.stringify(dir)+',"comparisons")'),true,answer);
+ assert.equal(a.run("grade(9,'el futbol es menos popular en España','es','comparisons')"),false);
+ assert.equal(a.run("grade(11,'Leo un promedo de 12 libros en el año','es','comparisons')"),false);
+});
+test('Comparisons saves independently and supports feedback, scores and missed rounds',()=>{
+ const a=boot();a.run("$('answer').value='existing draft';$('answer').oninput();selectSet('comparisons');state=makeRound('es',[2],'full','comparisons');$('answer').value='mas que';submit()");
+ assert.equal(a.nodes.get('feedback').children[3].textContent,'más que');const b=boot(a.saved());assert.equal(b.run('counts().correct'),1);
+ b.run("submit()");assert.equal(b.run('history[0].setId'),'comparisons');b.run("start([0]);$('unknown').onclick();submit();$('missed').onclick()");assert.equal(b.run('state.order.join()'),'0');
+ b.run("selectSet('everyday')");assert.equal(b.nodes.get('answer').value,'existing draft');
 });
 console.log(`\n${checks} checks passed.`);

@@ -32,3 +32,5 @@ Developer verification: run `node tests.cjs` (Node is only needed for tests, nev
 Likes, Dislikes & Opinions now defaults to **Basic**, the 18 worksheet entries: “I like…” → “Me gustan…”. Ellipses and underscores are optional. Worksheet (n) accepts either actual verb form. Enable **Advanced — complete sentences** for the 24 contextual practice cards. Basic and Advanced retain separate progress; previous complete-sentence rounds are preserved under Advanced.
 
 **Activities & Preferences** covers favorite activities and reasons for choosing them. Both **porque yo soy…** and **porque yo no soy…** are accepted. The good-friend cards distinguish feminine **una buena amiga** from masculine **un buen amigo**; in English, the gender label is optional.
+
+**Comparisons & Free Time** adds 13 worksheet pairs about likes, comparisons, reading, and leisure. Accepts le gusta/le gustan, les gusta/les gustan, tiempo libre/ocio, and he likes/she likes. Dots and blanks are optional; you can also fill them with your own words. Existing lessons and their progress are unchanged.
