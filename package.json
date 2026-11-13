@@ -1,0 +1,12 @@
+{
+  "name": "hola-study",
+  "private": true,
+  "scripts": {
+    "test": "node tests.cjs",
+    "test:browser": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "prettier": "^3.10.1"
+  }
+}

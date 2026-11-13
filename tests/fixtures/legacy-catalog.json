@@ -1,0 +1,1006 @@
+{
+  "VOCAB": [
+    [
+      "What’s up?",
+      "¿Qué tal?"
+    ],
+    [
+      "How’s it going?",
+      "¿Cómo te va?"
+    ],
+    [
+      "My pleasure.",
+      "Mucho gusto."
+    ],
+    [
+      "It’s my pleasure.",
+      "Encantado / Encantada."
+    ],
+    [
+      "See you soon!",
+      "¡Nos vemos!",
+      "starts with N"
+    ],
+    [
+      "See you later!",
+      "¡Hasta luego!"
+    ],
+    [
+      "See you tomorrow!",
+      "¡Hasta mañana!"
+    ],
+    [
+      "See you soon!",
+      "¡Hasta pronto!",
+      "starts with H"
+    ],
+    [
+      "Bye!",
+      "¡Chau!"
+    ],
+    [
+      "Goodbye!",
+      "¡Adiós!"
+    ],
+    [
+      "Take care!",
+      "¡Que te vaya bien!"
+    ],
+    [
+      "What is your name?",
+      "¿Cuál es tu nombre?"
+    ],
+    [
+      "I am…",
+      "Yo soy…"
+    ],
+    [
+      "What is your phone number?",
+      "¿Cuál es tu número de teléfono?"
+    ],
+    [
+      "My phone number is…",
+      "Mi número de teléfono es…"
+    ],
+    [
+      "Are you on Snapchat?",
+      "¿Estás en Snapchat?"
+    ],
+    [
+      "Do you use WhatsApp/Instagram?",
+      "¿Usas WhatsApp/Instagram?"
+    ],
+    [
+      "I use…",
+      "Uso…"
+    ],
+    [
+      "What is your username?",
+      "¿Cuál es tu nombre de usuario?"
+    ],
+    [
+      "It is…",
+      "Es…"
+    ],
+    [
+      "Text me.",
+      "Textéame."
+    ],
+    [
+      "Send me a text.",
+      "Me mandas un texto.",
+      "verb starts with M"
+    ],
+    [
+      "Send me a text.",
+      "Me envías un texto.",
+      "verb starts with E"
+    ],
+    [
+      "Call me.",
+      "Llámame."
+    ]
+  ],
+  "PERSONAL": [
+    [
+      "Where were you born?",
+      "¿Dónde naciste?"
+    ],
+    [
+      "I was born in...",
+      "Nací en..."
+    ],
+    [
+      "Where are you from?",
+      "¿De dónde eres?"
+    ],
+    [
+      "I am from...",
+      "Soy de..."
+    ],
+    [
+      "...the United States.",
+      "...los Estados Unidos."
+    ],
+    [
+      "...Spain.",
+      "...España."
+    ],
+    [
+      "I am American.",
+      "Soy estadounidense."
+    ],
+    [
+      "I am Mexican.",
+      "Soy mexicano/mexicana."
+    ],
+    [
+      "Where do you live?",
+      "¿Dónde vives?"
+    ],
+    [
+      "I live in...",
+      "Vivo en..."
+    ],
+    [
+      "What is your address?",
+      "¿Cuál es tu dirección?"
+    ],
+    [
+      "My address is...",
+      "Mi dirección es..."
+    ],
+    [
+      "How old are you?",
+      "¿Cuántos años tienes?"
+    ],
+    [
+      "I am ___ years old.",
+      "Tengo ___ años."
+    ],
+    [
+      "When is your birthday?",
+      "¿Cuándo es tu cumpleaños?"
+    ],
+    [
+      "My birthday is the ___ of ___.",
+      "Mi cumpleaños es el ___ de ___."
+    ],
+    [
+      "the first of...",
+      "el primero de..."
+    ]
+  ],
+  "FEELINGS": [
+    [
+      "How are you? (informal)",
+      "¿Cómo estás?"
+    ],
+    [
+      "How are you? (formal)",
+      "¿Cómo está usted?"
+    ],
+    [
+      "I am…",
+      "Estoy…"
+    ],
+    [
+      "How do you feel?",
+      "¿Cómo te sientes?"
+    ],
+    [
+      "I feel/I am…",
+      "Me siento…"
+    ],
+    [
+      "…okay",
+      "…más o menos"
+    ],
+    [
+      "…sick",
+      "…enfermo/enferma"
+    ],
+    [
+      "…tired",
+      "…cansado/cansada"
+    ],
+    [
+      "…overwhelmed/stressed",
+      "…estresado/estresada"
+    ],
+    [
+      "…nervous",
+      "…nervioso/nerviosa"
+    ],
+    [
+      "…excited",
+      "…emocionado/emocionada"
+    ],
+    [
+      "…content (happy)",
+      "…contento/contenta"
+    ],
+    [
+      "…calm/relaxed",
+      "…tranquilo/tranquila"
+    ],
+    [
+      "…bored",
+      "…aburrido/aburrida"
+    ],
+    [
+      "Me too.",
+      "Yo también."
+    ],
+    [
+      "Oh, I’m sorry.",
+      "¡Ay, lo siento!"
+    ],
+    [
+      "It’s alright.",
+      "Está bien."
+    ]
+  ],
+  "PERSONALITY": [
+    [
+      "I like it because I’m…",
+      "Me gusta porque soy…"
+    ],
+    [
+      "active",
+      "activo/a"
+    ],
+    [
+      "shy",
+      "tímido/a"
+    ],
+    [
+      "bilingual",
+      "bilingüe"
+    ],
+    [
+      "creative",
+      "creativo/a"
+    ],
+    [
+      "a teenager",
+      "un/una adolescente"
+    ],
+    [
+      "social",
+      "sociable"
+    ],
+    [
+      "I am (not) very…",
+      "(No) soy muy…"
+    ],
+    [
+      "young",
+      "joven"
+    ],
+    [
+      "introverted",
+      "introvertido/a"
+    ],
+    [
+      "responsible",
+      "responsable"
+    ],
+    [
+      "hardworking",
+      "trabajador(a)"
+    ],
+    [
+      "organized",
+      "organizado/a"
+    ],
+    [
+      "Incredible!",
+      "¡Increíble!"
+    ],
+    [
+      "Excellent!",
+      "¡Excelente!"
+    ],
+    [
+      "Of course!",
+      "¡Por supuesto!"
+    ],
+    [
+      "Oh, no!",
+      "¡Ay, no!"
+    ],
+    [
+      "Me neither (I also don’t like it)",
+      "A mí tampoco (me gusta)"
+    ],
+    [
+      "I agree.",
+      "Estoy de acuerdo."
+    ],
+    [
+      "Of course.",
+      "Claro."
+    ],
+    [
+      "Really?",
+      "¿De veras?"
+    ],
+    [
+      "I don’t believe it!",
+      "¡No lo puedo creer!"
+    ]
+  ],
+  "PERSONALITY_SPANISH": {
+    "1": [
+      "activo",
+      "activa"
+    ],
+    "2": [
+      "tímido",
+      "tímida"
+    ],
+    "4": [
+      "creativo",
+      "creativa"
+    ],
+    "5": [
+      "un adolescente",
+      "una adolescente"
+    ],
+    "9": [
+      "introvertido",
+      "introvertida"
+    ],
+    "11": [
+      "trabajador",
+      "trabajadora"
+    ],
+    "12": [
+      "organizado",
+      "organizada"
+    ]
+  },
+  "FEELINGS_ENGLISH": {
+    "0": [
+      "How are you?"
+    ],
+    "1": [
+      "How are you?"
+    ],
+    "4": [
+      "I feel…",
+      "I am…"
+    ],
+    "8": [
+      "…overwhelmed",
+      "…stressed"
+    ],
+    "11": [
+      "…content",
+      "…happy"
+    ],
+    "12": [
+      "…calm",
+      "…relaxed"
+    ]
+  },
+  "OPINIONS": [
+    [
+      "What do you like?",
+      "¿Qué te gusta?"
+    ],
+    [
+      "basketball",
+      "el baloncesto"
+    ],
+    [
+      "homework",
+      "la tarea"
+    ],
+    [
+      "You like Spanish class, don’t you?",
+      "Te gusta la clase de español, ¿no?",
+      "",
+      {
+        "en": [
+          "You like Spanish class, right?",
+          "You like Spanish class, do you not?"
+        ]
+      }
+    ],
+    [
+      "Do you like…?",
+      "¿Te gustan…?",
+      "",
+      {
+        "quiz": [
+          "Do you like Spanish classes?",
+          "¿Te gustan las clases de español?"
+        ],
+        "template": true
+      }
+    ],
+    [
+      "I like…",
+      "Me gusta… / Me gustan…",
+      "",
+      {
+        "quiz": [
+          "I like Spanish classes.",
+          "Me gustan las clases de español."
+        ],
+        "template": true
+      }
+    ],
+    [
+      "and",
+      "y"
+    ],
+    [
+      "but",
+      "pero"
+    ],
+    [
+      "because",
+      "porque"
+    ],
+    [
+      "or",
+      "o"
+    ],
+    [
+      "I like both.",
+      "Me gustan los dos.",
+      "",
+      {
+        "en": [
+          "I like both of them."
+        ]
+      }
+    ],
+    [
+      "I don’t like _____ or _____. / I like neither _____ nor _____.",
+      "No me gusta _____ ni _____. / No me gustan _____ ni _____.",
+      "",
+      {
+        "quiz": [
+          "I don’t like basketball or homework.",
+          "No me gusta el baloncesto ni la tarea."
+        ],
+        "en": [
+          "I like neither basketball nor homework.",
+          "I don’t like either basketball or homework.",
+          "I don’t like basketball and I don’t like homework."
+        ],
+        "template": true
+      }
+    ],
+    [
+      "I love…",
+      "Me encanta… / Me encantan…",
+      "",
+      {
+        "quiz": [
+          "I love Spanish classes.",
+          "Me encantan las clases de español."
+        ],
+        "template": true
+      }
+    ],
+    [
+      "I hate…",
+      "Yo odio…",
+      "",
+      {
+        "quiz": [
+          "I hate homework.",
+          "Yo odio la tarea."
+        ],
+        "es": [
+          "Odio la tarea."
+        ],
+        "template": true
+      }
+    ],
+    [
+      "I also like it/them.",
+      "Me gusta también. / Me gustan también.",
+      "",
+      {
+        "quiz": [
+          "I also like basketball.",
+          "Me gusta el baloncesto también."
+        ],
+        "es": [
+          "También me gusta el baloncesto.",
+          "Me gusta también el baloncesto."
+        ],
+        "en": [
+          "I like basketball too.",
+          "I like basketball as well."
+        ],
+        "template": true
+      }
+    ],
+    [
+      "I don’t like it/them either.",
+      "Tampoco me gusta. / Tampoco me gustan.",
+      "",
+      {
+        "quiz": [
+          "I don’t like homework either.",
+          "Tampoco me gusta la tarea."
+        ],
+        "es": [
+          "No me gusta la tarea tampoco."
+        ],
+        "template": true
+      }
+    ],
+    [
+      "I don’t like it/them at all.",
+      "No me gusta para nada. / No me gustan para nada.",
+      "",
+      {
+        "quiz": [
+          "I don’t like Spanish classes at all.",
+          "No me gustan las clases de español para nada."
+        ],
+        "template": true
+      }
+    ],
+    [
+      "I like it/them a lot.",
+      "Me gusta muchísimo. / Me gustan muchísimo.",
+      "",
+      {
+        "quiz": [
+          "I like Spanish classes a lot.",
+          "Me gustan muchísimo las clases de español."
+        ],
+        "es": [
+          "Me gustan las clases de español muchísimo."
+        ],
+        "en": [
+          "I really like Spanish classes.",
+          "I like Spanish classes very much."
+        ],
+        "template": true
+      }
+    ],
+    [
+      "Do you like…?",
+      "¿Te gusta…?",
+      "",
+      {
+        "quiz": [
+          "Do you like basketball?",
+          "¿Te gusta el baloncesto?"
+        ],
+        "template": true
+      }
+    ],
+    [
+      "I like basketball.",
+      "Me gusta el baloncesto."
+    ],
+    [
+      "I don’t like homework at all.",
+      "No me gusta la tarea para nada."
+    ],
+    [
+      "I love Spanish class.",
+      "Me encanta la clase de español."
+    ],
+    [
+      "I like basketball, but I don’t like homework.",
+      "Me gusta el baloncesto, pero no me gusta la tarea."
+    ],
+    [
+      "I don’t like basketball or homework.",
+      "No me gusta el baloncesto ni la tarea.",
+      "",
+      {
+        "en": [
+          "I like neither basketball nor homework.",
+          "I don’t like either basketball or homework."
+        ]
+      }
+    ]
+  ],
+  "ACTIVITIES": [
+    [
+      "What do you like to do?",
+      "¿Qué te gusta hacer?"
+    ],
+    [
+      "What do you prefer to do?",
+      "¿Qué prefieres hacer?"
+    ],
+    [
+      "I prefer…",
+      "Prefiero…"
+    ],
+    [
+      "to swim",
+      "nadar"
+    ],
+    [
+      "to dance",
+      "bailar"
+    ],
+    [
+      "to listen to music",
+      "escuchar música"
+    ],
+    [
+      "to hang out with friends",
+      "estar con amigos"
+    ],
+    [
+      "to read",
+      "leer"
+    ],
+    [
+      "to watch TV",
+      "mirar la televisión"
+    ],
+    [
+      "to go to the movies",
+      "ir al cine"
+    ],
+    [
+      "because I need to…",
+      "porque necesito…"
+    ],
+    [
+      "to study",
+      "estudiar"
+    ],
+    [
+      "to practice",
+      "practicar"
+    ],
+    [
+      "to relax",
+      "relajarme"
+    ],
+    [
+      "because I am (not)…",
+      "porque yo (no) soy…",
+      "",
+      {
+        "es": [
+          "porque yo soy…",
+          "porque yo no soy…"
+        ],
+        "en": [
+          "because I am…",
+          "because I am not…"
+        ]
+      }
+    ],
+    [
+      "a good friend (feminine)",
+      "una buena amiga",
+      "",
+      {
+        "en": [
+          "a good friend"
+        ]
+      }
+    ],
+    [
+      "a good friend (masculine)",
+      "un buen amigo",
+      "",
+      {
+        "en": [
+          "a good friend"
+        ]
+      }
+    ]
+  ],
+  "LANGUAGES": [
+    [
+      "Where do they speak Spanish?",
+      "¿Dónde se habla español?"
+    ],
+    [
+      "They speak Spanish in # countries.",
+      "Se habla español en … países.",
+      "",
+      {
+        "en": [
+          "They speak Spanish in ___ countries."
+        ]
+      }
+    ],
+    [
+      "Do they speak Spanish in Brazil?",
+      "¿Se habla español en Brasil?"
+    ],
+    [
+      "No, in Brazil they speak Portuguese.",
+      "No, en Brasil se habla portugués."
+    ],
+    [
+      "What languages are spoken in…?",
+      "¿Qué idiomas hablan en …?"
+    ],
+    [
+      "… our school?",
+      "… nuestra escuela?"
+    ],
+    [
+      "… our class?",
+      "… nuestra clase?"
+    ],
+    [
+      "Students here speak…",
+      "Aquí los estudiantes hablan…"
+    ],
+    [
+      "What percentage of people speak Spanish in Washington State?",
+      "En el estado de Washington, ¿qué porcentaje de personas habla español?"
+    ],
+    [
+      "____% of people speak Spanish here.",
+      "El ___ por ciento de personas habla español aquí."
+    ],
+    [
+      "What languages do you speak?",
+      "¿Qué idiomas hablas?"
+    ],
+    [
+      "Japanese (language)",
+      "…japonés"
+    ],
+    [
+      "Mandarin Chinese (language)",
+      "…chino mandarín"
+    ],
+    [
+      "Hindi",
+      "…hindi"
+    ],
+    [
+      "Russian",
+      "…ruso"
+    ],
+    [
+      "In my community…",
+      "En mi comunidad…"
+    ],
+    [
+      "In my school…",
+      "En mi escuela…"
+    ],
+    [
+      "In my state…",
+      "En mi estado…"
+    ],
+    [
+      "In my country…",
+      "En mi país…"
+    ],
+    [
+      "The majority of people speak…",
+      "La mayoría de las personas habla…"
+    ]
+  ],
+  "COMPARISONS": [
+    [
+      "he/she likes",
+      "le gusta(n)",
+      "",
+      {
+        "es": [
+          "le gusta",
+          "le gustan"
+        ],
+        "en": [
+          "he likes",
+          "she likes"
+        ]
+      }
+    ],
+    [
+      "they like",
+      "les gusta(n)",
+      "",
+      {
+        "es": [
+          "les gusta",
+          "les gustan"
+        ]
+      }
+    ],
+    [
+      "more than",
+      "más que"
+    ],
+    [
+      "less than",
+      "menos que"
+    ],
+    [
+      "Pedro likes _____ but Jimena likes _____.",
+      "A Pedro le gusta … pero a Jimena le gusta… ."
+    ],
+    [
+      "I like playing soccer as much as reading.",
+      "A mí me gusta jugar fútbol tanto como leer.",
+      "",
+      {
+        "es": [
+          "Me gusta jugar fútbol tanto como leer.",
+          "A mí me gusta jugar al fútbol tanto como leer."
+        ],
+        "en": [
+          "I like to play soccer as much as reading.",
+          "I like playing football as much as reading."
+        ]
+      }
+    ],
+    [
+      "It’s similar to…",
+      "Es similar a…"
+    ],
+    [
+      "It’s different than…",
+      "Es diferente a…",
+      "",
+      {
+        "en": [
+          "It’s different from…"
+        ]
+      }
+    ],
+    [
+      "Where is it most popular?",
+      "¿Dónde es más popular?"
+    ],
+    [
+      "…is more popular in …",
+      "… es más popular en…"
+    ],
+    [
+      "How many books do you read in a year?",
+      "¿Cuántos libros lees en un año?",
+      "",
+      {
+        "en": [
+          "How many books do you read a year?"
+        ]
+      }
+    ],
+    [
+      "I read about ___ books a year.",
+      "Leo un promedio de ___ libros en el año.",
+      "",
+      {
+        "en": [
+          "I read an average of ___ books a year."
+        ]
+      }
+    ],
+    [
+      "free time",
+      "tiempo libre/ ocio",
+      "",
+      {
+        "es": [
+          "tiempo libre",
+          "ocio"
+        ],
+        "en": [
+          "leisure",
+          "leisure time"
+        ]
+      }
+    ]
+  ],
+  "FAMILY": [
+    [
+      "How many people are in your family?",
+      "¿Cuántas personas hay en tu familia?"
+    ],
+    [
+      "There are … .",
+      "Hay… ."
+    ],
+    [
+      "siblings",
+      "hermanos"
+    ],
+    [
+      "A brother/a sister",
+      "Un hermano/una hermana",
+      "",
+      {
+        "es": [
+          "un hermano",
+          "una hermana"
+        ],
+        "en": [
+          "a brother",
+          "a sister"
+        ]
+      }
+    ],
+    [
+      "older",
+      "mayor"
+    ],
+    [
+      "younger",
+      "menor"
+    ],
+    [
+      "I am an only child.",
+      "Soy hijo único/ hija única/ hije únique",
+      "",
+      {
+        "es": [
+          "Soy hijo único.",
+          "Soy hija única.",
+          "Soy hije únique."
+        ]
+      }
+    ],
+    [
+      "Who do you live with?",
+      "¿Con quién vives?",
+      "",
+      {
+        "en": [
+          "With whom do you live?"
+        ]
+      }
+    ],
+    [
+      "I live with my…",
+      "Vivo con mis…",
+      "",
+      {
+        "es": [
+          "Vivo con mi…"
+        ]
+      }
+    ],
+    [
+      "father",
+      "… padre"
+    ],
+    [
+      "mother",
+      "…madre"
+    ],
+    [
+      "Who is that?",
+      "¿Quién es?",
+      "",
+      {
+        "en": [
+          "Who is it?",
+          "Who is he?",
+          "Who is she?"
+        ]
+      }
+    ],
+    [
+      "It’s my (…)",
+      "Es mi (…)"
+    ],
+    [
+      "Who are they?",
+      "¿Quiénes son?"
+    ],
+    [
+      "They are my (…)",
+      "Son mis (…)"
+    ]
+  ]
+}

@@ -1,360 +1,1431 @@
 // No third-party test dependencies. Exercise the exact script embedded in index.html.
-const fs = require('node:fs');
-const vm = require('node:vm');
-const assert = require('node:assert/strict');
-const html = fs.readFileSync(__dirname + '/index.html', 'utf8');
+const fs = require("node:fs");
+const vm = require("node:vm");
+const assert = require("node:assert/strict");
+const html = fs.readFileSync(__dirname + "/index.html", "utf8");
 const source = html.match(/<script>([\s\S]*?)<\/script>/)[1];
-function boot(stored, blocked=false) {
+function boot(stored, blocked = false) {
   const nodes = new Map();
-  function node(){return {value:'',textContent:'',hidden:false,disabled:false,style:{},children:[],attributes:{},append(...items){this.children.push(...items);},replaceChildren(){this.children=[];},setAttribute(k,v){this.attributes[k]=v;},focus(){this.focused=true;},setCustomValidity(v){this.validation=v;},reportValidity(){}};}
-  const context=vm.createContext({document:{getElementById(id){if(!nodes.has(id))nodes.set(id,node());return nodes.get(id);},querySelector(){if(!nodes.has('bar'))nodes.set('bar',node());return nodes.get('bar');},createElement:node},window:{},localStorage:{getItem(){if(blocked)throw Error('blocked');return stored||null;},setItem(k,v){if(blocked)throw Error('blocked');stored=v;}}});
-  vm.runInContext(source,context);
-  return {run:code=>vm.runInContext(code,context),nodes,saved:()=>stored};
-}
-let checks=0;
-function test(label, fn){fn();checks++;console.log('PASS '+label);}
-test('feedback link opens GitHub issue creation safely',()=>{const link=html.match(/<a class="feedback-link"([^>]*)>([^<]+)<\/a>/);assert.ok(link);assert.match(link[1],/href="https:\/\/github\.com\/martinb35\/hola\/issues\/new"/);assert.match(link[1],/target="_blank"/);assert.match(link[1],/rel="noopener noreferrer"/);assert.equal(link[2],'Request a feature or report a bug');});
-const app=boot();
-test('exactly 24 vocabulary pairs',()=>assert.equal(app.run('VOCAB.length'),24));
-test('all canonical answers pass in both directions',()=>assert.equal(app.run("VOCAB.every((card,id)=>grade(id,card[1],'es')&&grade(id,card[0],'en'))"),true));
-test('case, accents, repeated whitespace and punctuation',()=>assert.equal(app.run("grade(13, '  ¿¡ CUAL   ES TU NUMERO DE TELEFONO !?.,  ', 'es')"),true));
-test('envias without accent and decomposed accents',()=>{assert.equal(app.run("grade(22,'me envias un texto','es')"),true);assert.equal(app.run("grade(0,'¿Que\\u0301 tal?','es')"),true);});
-test('both gender forms',()=>{for(const form of ['Encantado','encantada.','Encantado / Encantada.'])assert.equal(app.run(`grade(3,${JSON.stringify(form)},'es')`),true);});
-test('ellipses optional in both languages',()=>assert.equal(app.run("[12,14,17,19].every(id=>['es','en'].every(dir=>{const a=VOCAB[id][dir==='es'?1:0].replace('…','');return grade(id,a,dir)&&grade(id,a+'...',dir)&&grade(id,a+'…',dir)}))"),true));
-test('ordinary spelling mistakes and different duplicate answers rejected',()=>{for(const [id,text] of [[0,'que tall'],[22,'me envies un texto'],[4,'hasta pronto'],[7,'nos vemos'],[21,'me envias un texto'],[3,'encantadoo']])assert.equal(app.run(`grade(${id},${JSON.stringify(text)},'es')`),false);});
-test('English straight and curly apostrophes equivalent',()=>assert.equal(app.run(`grade(0,"What's up?",'en')`),true));
-test('shuffling preserves every card and does not mutate input',()=>assert.equal(app.run('(()=>{const ids=VOCAB.map((_,i)=>i);return Array.from({length:100},()=>shuffle(ids)).every(x=>x.length===24&&new Set(x).size===24)&&ids.every((id,i)=>id===i)})()'),true));
-test('quiz hides feedback before submission',()=>assert.equal(app.nodes.get('feedback').hidden,true));
-test('blank and punctuation-only responses do not count',()=>{app.run("$('answer').value=' ¡?! ';submit()");assert.equal(app.run('counts().answered'),0);});
-test('wrong submission shows exact entered text and accented answer',()=>{app.run("state=makeRound('es',[22]);$('answer').value='me envies un texto';submit()");assert.equal(app.run('counts().incorrect'),1);assert.equal(app.nodes.get('feedback').hidden,false);assert.equal(app.nodes.get('feedback').children[1].textContent,'You entered: “me envies un texto”');assert.equal(app.nodes.get('feedback').children[3].textContent,'Me envías un texto.');});
-test('try again keeps original score',()=>{app.run("$('retry').onclick();$('answer').value='Me envías un texto';submit()");assert.equal(app.run('counts().incorrect'),1);assert.equal(app.run('counts().correct'),0);assert.equal(app.run('state.feedback.correct'),true);});
-test('Enter advances and completes; score recorded only once',()=>{app.run("$('answer-form').onsubmit({preventDefault(){}})");assert.equal(app.run('state.complete'),true);assert.equal(app.run('history.length'),1);app.run('submit()');assert.equal(app.run('history.length'),1);});
-test('retry missed creates a separate round of the missed IDs',()=>{app.run("$('missed').onclick()");assert.equal(app.run('state.order.join()'),'22');assert.equal(app.run('counts().answered'),0);assert.equal(app.run('state.kind'),'missed');});
-test('I do not know counts incorrect and reveals answer',()=>{app.run("$('unknown').onclick()");assert.equal(app.run('counts().incorrect'),1);assert.equal(app.run('state.feedback.skipped'),true);});
-test('reload restores pending feedback and scores',()=>{const restored=boot(app.saved());assert.equal(restored.run('state.feedback.skipped'),true);assert.equal(restored.run('history.length'),1);assert.equal(restored.run('counts().incorrect'),1);});
-test('draft is saved and resumed before grading',()=>{app.run("$('retry').onclick();$('answer').value='partial answer';$('answer').oninput()");const restored=boot(app.saved());assert.equal(restored.nodes.get('answer').value,'partial answer');assert.equal(restored.nodes.get('feedback').hidden,true);});
-test('review and return preserve the active card',()=>{const before=app.run('JSON.stringify(state)');app.run('showReview()');assert.equal(app.nodes.get('review').hidden,false);app.run("$('back').onclick()");assert.equal(app.run('JSON.stringify(state)'),before);});
-test('direction change starts a new reversed round',()=>{app.run("$('direction').value='en';$('direction').onchange()");assert.equal(app.run('state.direction'),'en');assert.equal(app.run('state.order.length'),24);assert.equal(app.run('counts().answered'),0);assert.equal(app.nodes.get('hint').hidden,true);assert.equal(app.nodes.get('prompt').textContent,app.run('VOCAB[state.order[0]][1]'));});
-test('correct reversed answer exposes the Spanish spelling',()=>{app.run("state=makeRound('en',[0]);$('answer').value=\"What's up?\";submit()");assert.equal(app.run('counts().correct'),1);assert.ok(app.nodes.get('feedback').children.some(n=>n.textContent==='¿Qué tal?'));});
-test('complete round scores, remaining, and recent score cap',()=>{app.run("state=makeRound();for(let i=0;i<24;i++){ $('answer').value=VOCAB[state.order[state.index]][1];submit();submit(); }");assert.equal(app.run('counts().correct'),24);assert.equal(app.nodes.get('remaining').textContent,0);assert.equal(app.nodes.get('percent').textContent,'100%');assert.equal(app.nodes.get('missed').disabled,true);app.run("for(let i=0;i<12;i++){start([0]);$('answer').value='qué tal';submit();submit();}");assert.equal(app.run('history.length'),10);});
-test('corrupt and unavailable storage remain usable',()=>{assert.equal(boot('{bad').run('state.order.length'),24);assert.equal(boot(JSON.stringify({state:{order:[999]}})).run('state.order.length'),24);const blocked=boot(null,true);assert.equal(blocked.nodes.get('storage-note').hidden,false);assert.equal(blocked.run('state.order.length'),24);});
-test('streak tracks consecutive first attempts and celebrates each multiple of five',()=>{
- const a=boot();a.run('state=makeRound()');
- for(let i=1;i<=24;i++){
-  a.run("$('answer').value=VOCAB[state.order[state.index]][1];submit()");
-  assert.equal(a.run('streak()'),i);
-  assert.equal(a.nodes.get('streak-count').textContent,i);
-  assert.equal(a.nodes.get('celebration').children.length,i%5===0?1:0);
-  if(i%5===0)assert.equal(a.nodes.get('celebration').children[0].children[3].textContent,`${i} in a row! ¡BRAVO!`);
-  a.run('submit()');
- }
- assert.equal(a.run('streak()'),24);
- a.run('start()');assert.equal(a.run('streak()'),0);
-});
-test('wrong and skipped answers reset momentum; retries never add to it',()=>{
- const a=boot();
- a.run("for(let i=0;i<5;i++){$('answer').value=VOCAB[state.order[state.index]][1];submit();if(i<4)submit();}");
- assert.equal(a.run('streak()'),5);
- a.run("$('retry').onclick();$('answer').value=VOCAB[state.order[state.index]][1];submit()");
- assert.equal(a.run('streak()'),5);assert.equal(a.nodes.get('celebration').children.length,0);
- a.run("submit();$('answer').value='wrong';submit()");assert.equal(a.run('streak()'),0);
- a.run("$('retry').onclick();$('answer').value=VOCAB[state.order[state.index]][1];submit()");assert.equal(a.run('streak()'),0);
- a.run("submit();$('answer').value=VOCAB[state.order[state.index]][1];submit();submit();$('unknown').onclick()");assert.equal(a.run('streak()'),0);
-});
-test('saved streak resumes without replaying fireworks',()=>{
- const a=boot();a.run("for(let i=0;i<5;i++){$('answer').value=VOCAB[state.order[state.index]][1];submit();if(i<4)submit();}");
- const restored=boot(a.saved());assert.equal(restored.run('streak()'),5);assert.equal(restored.nodes.get('celebration').children.length,0);
- assert.equal(restored.nodes.get('mercury').attributes.height,59.6);
- restored.run("$('direction').value='en';$('direction').onchange()");assert.equal(restored.run('streak()'),0);
-});
-test('Personal Information includes all 17 pairs and supports both quiz directions',()=>{
- const a=boot();a.run("selectSet('personal')");
- assert.equal(a.run('state.order.length'),17);assert.equal(a.nodes.get('vocabulary').children.length,17);
- assert.equal(a.nodes.get('set-heading').textContent,'Personal Information · 17 phrases');
- const spanish=['¿Dónde naciste?','Nací en Madrid','¿De dónde eres?','Soy de México','los Estados Unidos','España','Soy estadounidense','Soy mexicana','¿Dónde vives?','Vivo en San Diego','¿Cuál es tu dirección?','Mi dirección es 123 Calle Sol','¿Cuántos años tienes?','Tengo 13 años','¿Cuándo es tu cumpleaños?','Mi cumpleaños es el 4 de mayo','el primero de junio'];
- const english=['Where were you born?','I was born in Madrid','Where are you from?','I am from Mexico','the United States','Spain','I am American','I am Mexican','Where do you live?','I live in San Diego','What is your address?','My address is 123 Sun Street','How old are you?','I am 13 years old','When is your birthday?','My birthday is the 4th of May','the first of June'];
- for(let id=0;id<17;id++)for(const [dir,answer] of [['es',spanish[id]],['en',english[id]]]){
-  assert.equal(a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','personal')`),true,answer);
-  assert.equal(a.run(`grade(${id},${JSON.stringify(answer.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase())},'${dir}','personal')`),true,answer+' accentless');
- }
- for(const word of ['mexicano','mexicana'])assert.equal(a.run(`grade(7,'Soy ${word}','es','personal')`),true);
- assert.equal(a.run("grade(4,'Soy de los Estados Unidos','es','personal')"),true);
- assert.equal(a.run("grade(5,'I am from Spain','en','personal')"),true);
-});
-test('templates require filled blanks and correctly spelled fixed words',()=>{
- const a=boot();
- for(const [id,answer,dir] of [[1,'Nacii en Madrid','es'],[3,'Soy del Madrid','es'],[13,'Tengo ___ años','es'],[13,'Tengo años','es'],[13,'Tengo 13 anos extra','es'],[15,'Mi cumpleaños es el de mayo','es'],[15,'Mi cumpleaños es el 4 de','es'],[15,'Mi cumpleanos el 4 de mayo','es'],[15,'My birthday is the of May','en'],[7,'Soy mexican','es'],[0,'Donde nacistes','es']])assert.equal(a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','personal')`),false,answer);
-});
-test('all ellipsis phrases accept bare phrases, literal ellipses, or supplied endings',()=>{
- const a=boot();
- assert.equal(a.run("Object.entries(SETS).every(([setId,set])=>set.cards.every((card,id)=>['es','en'].every(dir=>{const text=card[dir==='es'?1:0];if(setId==='comparisons' || setId==='opinions' || card[3]?.quiz || !/(?:\\.{3}|…)$/.test(text))return true;const bare=text.replace(/(?:\\.{3}|…)$/,'');return [bare,text,bare+' Madrid'].every(answer=>grade(id,answer,dir,setId));})))"),true);
- a.run("state=makeRound('es',[9],'full','personal');$('answer').value='Vivo en';submit()");
- assert.equal(a.run('state.feedback.correct'),true);
- assert.equal(a.nodes.get('feedback').children[3].textContent,'Vivo en...');
-});
-test('switching sets and reloading preserves independent rounds, drafts, and feedback',()=>{
- const a=boot();a.run("$('unknown').onclick()");const old=a.run('JSON.stringify(state)');
- a.run("$('study-set').value='personal';$('study-set').onchange();$('answer').value='Nací en Madrid';$('answer').oninput()");
- const personal=a.run('JSON.stringify(state)');a.run("selectSet('everyday')");assert.equal(a.run('JSON.stringify(state)'),old);
- const b=boot(a.saved());b.run("selectSet('personal')");assert.equal(b.run('JSON.stringify(state)'),personal);assert.equal(b.nodes.get('answer').value,'Nací en Madrid');
- b.run("$('direction').value='en';$('direction').onchange()");assert.equal(b.run('state.setId'),'personal');assert.equal(b.run('state.order.length'),17);
- b.run("selectSet('everyday')");assert.equal(b.run('JSON.stringify(state)'),old);
-});
-test('legacy saves migrate without losing order, first attempts, draft, feedback or history',()=>{
- const a=boot();a.run("state=makeRound('es',[0,1]);state.order=[0,1];$('answer').value='que tal';submit();submit();$('answer').value='draft';$('answer').oninput()");
- const legacy=JSON.parse(a.saved());delete legacy.state.setId;delete legacy.rounds;
- legacy.history=[{date:'2026-09-18T00:00:00.000Z',correct:20,total:24,direction:'es',kind:'full'}];
- const b=boot(JSON.stringify(legacy));assert.equal(b.run('state.setId'),'everyday');assert.equal(b.run('state.index'),1);assert.equal(b.run('state.draft'),'draft');assert.equal(b.run('streak()'),1);assert.equal(b.run('history[0].correct'),20);assert.equal(b.run('history[0].setId'),'everyday');
- b.run("selectSet('personal');selectSet('everyday')");assert.equal(b.nodes.get('answer').value,'draft');
- const completed={...legacy.state,index:2,complete:true,draft:'',results:{0:true,1:false},feedback:null};
- const c=boot(JSON.stringify({state:completed,history:legacy.history}));assert.equal(c.run('state.complete'),true);assert.equal(c.nodes.get('summary').hidden,false);c.run("$('missed').onclick()");assert.equal(c.run('state.order.join()'),'1');
-});
-test('personal feedback, missed rounds, summaries and scores use the selected set',()=>{
- const a=boot();a.run("state=makeRound('es',[0], 'full','personal');$('answer').value='donde naciste';submit()");
- assert.equal(a.nodes.get('feedback').children[3].textContent,'¿Dónde naciste?');a.run('submit()');
- assert.equal(a.run('history[0].setId'),'personal');assert.equal(a.nodes.get('final-percent').textContent,'100%');
- a.run("start([13]);$('unknown').onclick();submit();$('missed').onclick()");assert.equal(a.run('state.setId'),'personal');assert.equal(a.run('state.order.join()'),'13');
- a.run("$('answer').value='Tengo 13 anos';submit()");assert.equal(a.run('counts().correct'),1);assert.equal(a.nodes.get('feedback').children[3].textContent,'Tengo ___ años.');
- a.run("$('new-round').onclick()");assert.equal(a.run('state.order.length'),17);
- a.run("state=makeRound('en',[15],'full','personal');$('answer').value='My birthday is the 4th of May';submit()");
- assert.ok(a.nodes.get('feedback').children.some(n=>n.textContent==='Mi cumpleaños es el ___ de ___.'));
-});
-test('reload repairs an outdated rejection of vivo en and its first-attempt score',()=>{
- const a=boot();a.run("state=makeRound('es',[9],'full','personal');$('answer').value=' vivo en';submit()");
- const saved=JSON.parse(a.saved());saved.state.feedback.correct=false;saved.state.results[9]=false;
- const b=boot(JSON.stringify(saved));assert.equal(b.run('state.feedback.correct'),true);assert.equal(b.run('counts().correct'),1);assert.equal(b.run('counts().incorrect'),0);assert.equal(b.run('streak()'),1);
- assert.equal(b.nodes.get('feedback').children[3].textContent,'Vivo en...');
- assert.equal(b.nodes.get('celebration').children.length,0);
- const c=boot(b.saved());assert.equal(c.run('counts().correct'),1);
-});
-test('saved feedback repair never awards credit to skipped cards or practice retries',()=>{
- const a=boot();a.run("state=makeRound('es',[9],'full','personal');$('answer').value='vivo en';submit()");
- const saved=JSON.parse(a.saved());saved.state.feedback.correct=false;saved.state.results[9]=false;saved.state.feedback.practice=true;
- const retry=boot(JSON.stringify(saved));assert.equal(retry.run('state.feedback.correct'),true);assert.equal(retry.run('counts().incorrect'),1);
- saved.state.feedback.practice=false;saved.state.feedback.skipped=true;
- const skipped=boot(JSON.stringify(saved));assert.equal(skipped.run('state.feedback.correct'),false);assert.equal(skipped.run('counts().incorrect'),1);
- saved.state.feedback.skipped=false;saved.state.feedback.answer='vivo enn';
- const typo=boot(JSON.stringify(saved));assert.equal(typo.run('state.feedback.correct'),false);
-});
-
-test('Feelings contains 17 pairs accepted in both directions',()=>{
- const a=boot();a.run("selectSet('feelings')");assert.equal(a.run('state.order.length'),17);assert.equal(a.nodes.get('vocabulary').children.length,17);
- assert.equal(a.run("FEELINGS.every((card,id)=>grade(id,card[0],'en','feelings')&&grade(id,card[1],'es','feelings'))"),true);
- assert.equal(a.run("grade(0,'Como estas','es','feelings')&&grade(1,'Como esta usted','es','feelings')&&grade(14,'yo tambien','es','feelings')"),true);
- assert.equal(a.run("grade(0,'Como esta usted','es','feelings')"),false);assert.equal(a.run("grade(1,'Como estas','es','feelings')"),false);
-});
-test('Feelings accepts both gender forms and English alternatives without accepting typos',()=>{
- const a=boot();assert.equal(a.run("FEELINGS.slice(6,14).every((card,i)=>card[1].replace(/^…/,'').split('/').every(word=>grade(i+6,word,'es','feelings')&&grade(i+6,'Estoy '+word,'es','feelings')))"),true);
- assert.equal(a.run("Object.entries(FEELINGS_ENGLISH).every(([id,answers])=>answers.every(answer=>grade(Number(id),answer,'en','feelings')))"),true);
- assert.equal(a.run("grade(7,'cansadoo','es','feelings')"),false);
-});
-test('Feelings progress survives reload and switching lessons',()=>{
- const a=boot();a.run("$('answer').value='old draft';$('answer').oninput();selectSet('personal');$('answer').value='personal draft';$('answer').oninput();selectSet('feelings');state=makeRound('es',[7],'full','feelings');$('answer').value='cansada';submit()");
- assert.equal(a.nodes.get('feedback').children[3].textContent,'…cansado/cansada');
- const b=boot(a.saved());assert.equal(b.run('state.setId'),'feelings');assert.equal(b.run('counts().correct'),1);
- b.run("selectSet('everyday')");assert.equal(b.nodes.get('answer').value,'old draft');b.run("selectSet('personal')");assert.equal(b.nodes.get('answer').value,'personal draft');
- b.run("selectSet('feelings');submit()");assert.equal(b.run('history[0].setId'),'feelings');assert.equal(b.nodes.get('final-percent').textContent,'100%');
-});
-
-test('Personality includes all 22 pairs and accepts both gender forms and optional words',()=>{
- const a=boot();a.run("selectSet('personality')");
- assert.equal(a.run('PERSONALITY.length'),22);assert.equal(a.run('state.order.length'),22);assert.equal(a.nodes.get('vocabulary').children.length,22);
- assert.equal(a.nodes.get('set-heading').textContent,'Personality · 22 phrases');
- assert.equal(a.run("PERSONALITY.every((card,id)=>grade(id,card[0],'en','personality')&&grade(id,card[1],'es','personality'))"),true);
- assert.equal(a.run("Object.entries(PERSONALITY_SPANISH).every(([id,forms])=>forms.every(form=>grade(Number(id),form,'es','personality')))"),true);
- for(const [id,answers,dir] of [[7,['Soy muy joven','No soy muy joven'],'es'],[7,['I am very young','I am not very young'],'en'],[17,['A mí tampoco','A mí tampoco me gusta'],'es'],[17,['Me neither','I also don’t like it'],'en']])for(const answer of answers)assert.equal(a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','personality')`),true,answer);
- assert.equal(a.run("grade(1,'actuvo','es','personality')"),false);
-});
-test('Personality progress persists independently across reloads and study sets',()=>{
- const a=boot();a.run("selectSet('personality');state=makeRound('es',[1],'full','personality');$('answer').value='activa';submit();$('answer').value='draft';$('answer').oninput();selectSet('feelings')");
- const b=boot(a.saved());b.run("selectSet('personality')");assert.equal(b.run('state.setId'),'personality');assert.equal(b.run('counts().correct'),1);assert.equal(b.nodes.get('answer').value,'draft');
-});
-
-test('Opinions contains the 18 entries plus six practice variants and examples',()=>{
- const a=boot();a.run("selectSet('opinionsAdvanced')");assert.equal(a.run('OPINIONS.length'),24);assert.equal(a.run('state.order.length'),24);assert.equal(a.nodes.get('vocabulary').children.length,24);
- assert.equal(a.run("OPINIONS.every((_,id)=>['es','en'].every(dir=>grade(id,practiceCard('opinionsAdvanced',id)[dir==='es'?1:0],dir,'opinionsAdvanced')))"),true);
- assert.equal(a.run("OPINIONS.every((_,id)=>!/[…_]|\\(n\\)/.test(practiceCard('opinionsAdvanced',id).join(' ')))"),true);
-});
-test('Opinions grades agreement in complete sentences and preserves articles',()=>{
- const a=boot();
- for(const [id,answer] of [[4,'Te gusta las clases de español'],[5,'Me gusta las clases de español'],[12,'Me encanta las clases de español'],[18,'Te gustan el baloncesto'],[19,'Me gustan el baloncesto'],[21,'Me encantan la clase de español'],[1,'baloncesto'],[2,'tarea']])assert.equal(a.run('grade('+id+','+JSON.stringify(answer)+',"es","opinionsAdvanced")'),false,answer);
- assert.equal(a.run("grade(4,'Te gustan las clases de espanol','es','opinionsAdvanced')"),true);
- assert.equal(a.run("grade(18,'Te gusta el baloncesto','es','opinionsAdvanced')"),true);
-});
-test('Opinions accepts equivalent English translations and supplies accent guidance',()=>{
- const a=boot();
- for(const [id,answer] of [[3,'You like Spanish class, right?'],[11,'I like neither basketball nor homework'],[15,'I do not like homework either'],[17,'I really like Spanish classes'],[23,'I do not like basketball or homework']])assert.equal(a.run('grade('+id+','+JSON.stringify(answer)+',"en","opinionsAdvanced")'),true,answer);
- a.run("state=makeRound('es',[17],'full','opinionsAdvanced');$('answer').value='Me gustan muchisimo las clases de espanol';submit()");assert.equal(a.run('counts().correct'),1);
- assert.ok(a.nodes.get('feedback').children.some(n=>n.textContent.includes('Spelling reminder: muchísimo, español')));
-});
-test('Opinions rounds restore without changing existing lessons and support missed-card practice',()=>{
- const a=boot();a.run("selectSet('feelings');$('answer').value='my draft';$('answer').oninput();selectSet('opinionsAdvanced');state=makeRound('es',[1],'full','opinionsAdvanced');$('unknown').onclick();submit();$('missed').onclick()");assert.equal(a.run('state.order.join()'),'1');assert.equal(a.run('state.setId'),'opinionsAdvanced');
- const b=boot(a.saved());assert.equal(b.run('state.kind'),'missed');b.run("$('answer').value='el baloncesto';submit();submit()");assert.equal(b.run('history[0].setId'),'opinionsAdvanced');assert.equal(b.nodes.get('final-percent').textContent,'100%');
- b.run("selectSet('feelings')");assert.equal(b.nodes.get('answer').value,'my draft');b.run("selectSet('opinionsAdvanced');$('direction').value='en';$('direction').onchange()");assert.equal(b.run('state.order.length'),24);assert.equal(b.run('state.direction'),'en');
-});
-
-test('natural English alternatives preserve the meaning of the opinions prompt',()=>{
- const a=boot();assert.equal(a.run("grade(10,'I like both of them','en','opinionsAdvanced')"),true);
- assert.equal(a.run("grade(3,'You like Spanish class, do you not?','en','opinionsAdvanced')"),true);
- assert.equal(a.run("grade(11,'I do not like basketball and I do not like homework','en','opinionsAdvanced')"),true);
- assert.equal(a.run("grade(10,'I like one of them','en','opinionsAdvanced')"),false);
-});
-test('saved progress rejects future scores and feedback without an attempt',()=>{
- const a=boot();assert.equal(a.run("(()=>{const s=makeRound();s.results[s.order[2]]=true;return validRound(s)})()"),false);
- assert.equal(a.run("(()=>{const s=makeRound();s.feedback={answer:'test',correct:true};return validRound(s)})()"),false);
- assert.equal(a.run("(()=>{const s=makeRound();s.setId='constructor';return validRound(s)})()"),false);
- a.run("$('unknown').onclick();$('retry').onclick()");assert.equal(a.run('validRound(state)'),true);
- const b=boot(a.saved());assert.equal(b.run('counts().incorrect'),1);
-});
-
-test('Basic defaults to the 18 worksheet phrases and accepts me gustan without an ending',()=>{
- const a=boot();a.run("selectSet('opinions');state=makeRound('es',[5],'full','opinions');render()");assert.equal(a.nodes.get('prompt').textContent,'I like…');assert.equal(a.nodes.get('advanced').checked,false);
- a.run("$('answer').value='me gustan';submit()");assert.equal(a.run('counts().correct'),1);assert.equal(a.nodes.get('feedback').children[3].textContent,'Me gustan…');
- assert.equal(a.run("grade(5,'me gusta','es','opinions')"),false);
- for(const answer of ['me encanta','me encantan'])assert.equal(a.run('grade(12,'+JSON.stringify(answer)+',"es","opinions")'),true);
- for(const answer of ['Me gusta tambien','Me gustan tambien'])assert.equal(a.run('grade(14,'+JSON.stringify(answer)+',"es","opinions")'),true);
- a.run('start()');assert.equal(a.run('state.order.length'),18);assert.equal(a.nodes.get('vocabulary').children.length,18);
-});
-test('Advanced toggle preserves separate rounds, typed drafts, and reload preference',()=>{
- const a=boot();a.run("selectSet('opinions');$('answer').value='basic draft';$('answer').oninput();$('advanced').checked=true;$('advanced').onchange()");assert.equal(a.run('state.order.length'),24);assert.equal(a.run('state.setId'),'opinionsAdvanced');
- a.run("$('answer').value='advanced draft';$('answer').oninput()");const b=boot(a.saved());assert.equal(b.nodes.get('advanced').checked,true);
- b.run("$('advanced').checked=false;$('advanced').onchange()");assert.equal(b.nodes.get('answer').value,'basic draft');b.run("$('advanced').checked=true;$('advanced').onchange()");assert.equal(b.nodes.get('answer').value,'advanced draft');
-});
-test('existing complete-sentence progress migrates to Advanced while Basic becomes default',()=>{
- const a=boot();a.run("selectSet('opinionsAdvanced');$('unknown').onclick()");const saved=JSON.parse(a.saved());delete saved.basicAdvanced;saved.state.setId='opinions';saved.rounds.opinions={...saved.state};delete saved.rounds.opinionsAdvanced;
- const b=boot(JSON.stringify(saved));assert.equal(b.run('state.setId'),'opinions');assert.equal(b.run('state.order.length'),18);b.run("selectSet('opinionsAdvanced')");assert.equal(b.run('counts().incorrect'),1);assert.equal(b.run('state.feedback.skipped'),true);
-});
-test('Activities & Preferences includes all 17 requested pairs in review and both directions',()=>{
- const a=boot();a.run("selectSet('activities')");
- const pairs=[
-  ['What do you like to do?','¿Qué te gusta hacer?'],['What do you prefer to do?','¿Qué prefieres hacer?'],
-  ['I prefer…','Prefiero…'],['to swim','nadar'],['to dance','bailar'],['to listen to music','escuchar música'],
-  ['to hang out with friends','estar con amigos'],['to read','leer'],['to watch TV','mirar la televisión'],
-  ['to go to the movies','ir al cine'],['because I need to…','porque necesito…'],['to study','estudiar'],
-  ['to practice','practicar'],['to relax','relajarme'],['because I am (not)…','porque yo (no) soy…'],
-  ['a good friend (feminine)','una buena amiga'],['a good friend (masculine)','un buen amigo']
- ];
- assert.match(html,/<option value="activities">Activities &amp; Preferences<\/option>/);
- assert.deepEqual(JSON.parse(a.run('JSON.stringify(ACTIVITIES.map(card=>card.slice(0,2)))')),pairs);
- assert.equal(a.run('state.order.length'),17);assert.equal(a.run('new Set(state.order).size'),17);
- assert.equal(a.nodes.get('set-heading').textContent,'Activities & Preferences · 17 phrases');
- assert.equal(a.nodes.get('vocabulary').children.length,17);
- pairs.forEach(([en,es],id)=>{
-  const review=a.nodes.get('vocabulary').children[id].children[0].children;
-  assert.equal(review[0].textContent,en);assert.equal(review[1].textContent,es);
-  for(const [dir,answer] of [['en',en],['es',es]]){
-   assert.equal(a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','activities')`),true,answer);
-   assert.equal(a.run(`grade(${id},${JSON.stringify(answer.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase())},'${dir}','activities')`),true);
+  const ids = new Set([...html.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]));
+  function node() {
+    return {
+      value: "",
+      textContent: "",
+      hidden: false,
+      disabled: false,
+      style: {},
+      children: [],
+      attributes: {},
+      append(...items) {
+        this.children.push(...items);
+      },
+      replaceChildren() {
+        this.children = [];
+      },
+      setAttribute(k, v) {
+        this.attributes[k] = v;
+      },
+      focus() {
+        this.focused = true;
+      },
+      setCustomValidity(v) {
+        this.validation = v;
+      },
+      reportValidity() {},
+    };
   }
- });
+  const context = vm.createContext({
+    document: {
+      getElementById(id) {
+        if (!ids.has(id)) throw new Error("Missing HTML element: " + id);
+        if (!nodes.has(id)) nodes.set(id, node());
+        return nodes.get(id);
+      },
+      querySelector() {
+        if (!nodes.has("bar")) nodes.set("bar", node());
+        return nodes.get("bar");
+      },
+      createElement: node,
+    },
+    window: {},
+    localStorage: {
+      getItem() {
+        if (blocked) throw Error("blocked");
+        return stored || null;
+      },
+      setItem(k, v) {
+        if (blocked) throw Error("blocked");
+        stored = v;
+      },
+    },
+  });
+  vm.runInContext(source, context);
+  // Legacy vocabulary fixtures keep historical regression expectations independent of production data.
+  context.legacyFixtures = JSON.parse(
+    fs.readFileSync(__dirname + "/tests/fixtures/legacy-catalog.json", "utf8"),
+  );
+  vm.runInContext(
+    "const {VOCAB,PERSONAL,FEELINGS,PERSONALITY,PERSONALITY_SPANISH,FEELINGS_ENGLISH,OPINIONS,ACTIVITIES,LANGUAGES,COMPARISONS,FAMILY}=legacyFixtures;for(const [name,setId] of Object.entries({VOCAB:'everyday',PERSONAL:'personal',FEELINGS:'feelings',PERSONALITY:'personality',OPINIONS:'opinionsAdvanced',ACTIVITIES:'activities',LANGUAGES:'languages',COMPARISONS:'comparisons',FAMILY:'family'})){const arr=legacyFixtures[name];LEGACY_CARD_IDS[setId].forEach((id,i)=>arr[id]=arr[i]);}",
+    context,
+  );
+  return {
+    run: (code) => vm.runInContext(code, context),
+    nodes,
+    saved: () => stored,
+  };
+}
+function legacySave(serialized) {
+  const data = JSON.parse(serialized);
+  delete data.schemaVersion;
+  const maps = JSON.parse(
+    fs.readFileSync(__dirname + "/tests/fixtures/legacy-ids.json", "utf8"),
+  );
+  const convert = (s) => {
+    if (!s) return s;
+    const ids = maps[s.setId || "everyday"];
+    return {
+      ...s,
+      order: s.order.map((id) => ids.indexOf(id)),
+      results: Object.fromEntries(
+        Object.entries(s.results).map(([id, value]) => [
+          ids.indexOf(id),
+          value,
+        ]),
+      ),
+    };
+  };
+  data.state = convert(data.state);
+  for (const id of Object.keys(data.rounds || {}))
+    data.rounds[id] = convert(data.rounds[id]);
+  return data;
+}
+let checks = 0;
+function test(label, fn) {
+  fn();
+  checks++;
+  console.log("PASS " + label);
+}
+test("feedback link opens GitHub issue creation safely", () => {
+  const link = html.match(/<a\b([^>]*class="feedback-link"[^>]*)>([^<]+)<\/a\s*>/);
+  assert.ok(link);
+  assert.match(
+    link[1],
+    /href="https:\/\/github\.com\/martinb35\/hola\/issues\/new"/,
+  );
+  assert.match(link[1], /target="_blank"/);
+  assert.match(link[1], /rel="noopener noreferrer"/);
+  assert.equal(link[2].trim(), "Request a feature or report a bug");
 });
-test('Activities accepts optional negatives and endings but rejects typos and wrong gender',()=>{
- const a=boot();
- for(const [id,answers,dir] of [
-  [2,['Prefiero','Prefiero nadar'],'es'],[10,['porque necesito','porque necesito estudiar'],'es'],
-  [14,['porque yo soy','porque yo no soy','porque yo no soy un buen amigo'],'es'],
-  [14,['because I am','because I am not','because I am not a good friend'],'en'],
-  [15,['a good friend'],'en'],[16,['a good friend'],'en']
- ])for(const answer of answers)assert.equal(a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','activities')`),true,answer);
- for(const [id,answer,dir] of [[0,'Que te gusta','es'],[3,'nadar extra','es'],[5,'escuchar musico','es'],[14,'porque yo no soyy','es'],[15,'un buen amigo','es'],[16,'una buena amiga','es'],[15,'a good friend (masculine)','en']]){
-  assert.equal(a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','activities')`),false,answer);
- }
+const app = boot();
+test("exactly 24 vocabulary pairs", () =>
+  assert.equal(app.run("VOCAB.length"), 24));
+test("all canonical answers pass in both directions", () =>
+  assert.equal(
+    app.run(
+      "VOCAB.every((card,id)=>grade(id,card[1],'es')&&grade(id,card[0],'en'))",
+    ),
+    true,
+  ));
+test("case, accents, repeated whitespace and punctuation", () =>
+  assert.equal(
+    app.run("grade(13, '  ¿¡ CUAL   ES TU NUMERO DE TELEFONO !?.,  ', 'es')"),
+    true,
+  ));
+test("envias without accent and decomposed accents", () => {
+  assert.equal(app.run("grade(22,'me envias un texto','es')"), true);
+  assert.equal(app.run("grade(0,'¿Que\\u0301 tal?','es')"), true);
 });
-test('Activities keeps independent progress, feedback, missed cards and scores across reloads',()=>{
- const a=boot();a.run("$('answer').value='existing draft';$('answer').oninput();selectSet('activities');state=makeRound('es',[5],'full','activities');$('answer').value='escuchar musica';submit()");
- assert.equal(a.nodes.get('feedback').children[3].textContent,'escuchar música');
- const b=boot(a.saved());assert.equal(b.run('state.setId'),'activities');assert.equal(b.run('counts().correct'),1);
- b.run("selectSet('everyday')");assert.equal(b.nodes.get('answer').value,'existing draft');
- b.run("selectSet('activities');submit()");assert.equal(b.run('history[0].setId'),'activities');
- b.run("start([16]);$('unknown').onclick();submit();$('missed').onclick()");
- assert.equal(b.run('state.setId'),'activities');assert.equal(b.run('state.order.join()'),'16');
- b.run("$('answer').value='un buen amigo';submit();submit()");assert.equal(b.nodes.get('final-percent').textContent,'100%');
- b.run("$('direction').value='en';$('direction').onchange()");
- assert.equal(b.run('state.order.length'),17);assert.equal(b.run('state.direction'),'en');
- assert.equal(b.nodes.get('prompt').textContent,b.run('ACTIVITIES[state.order[0]][1]'));
- b.run("$('answer').value='saved activities draft';$('answer').oninput()");
- const c=boot(b.saved());assert.equal(c.nodes.get('answer').value,'saved activities draft');
+test("both gender forms", () => {
+  for (const form of ["Encantado", "encantada.", "Encantado / Encantada."])
+    assert.equal(app.run(`grade(3,${JSON.stringify(form)},'es')`), true);
 });
-test('Languages and Communities includes all 20 requested pairs and accepts filled blanks in both directions',()=>{
-const a=boot();a.run("selectSet('languages')");
-const pairs=[
- ['Where do they speak Spanish?','¿Dónde se habla español?'],
- ['They speak Spanish in # countries.','Se habla español en … países.'],
- ['Do they speak Spanish in Brazil?','¿Se habla español en Brasil?'],
- ['No, in Brazil they speak Portuguese.','No, en Brasil se habla portugués.'],
- ['What languages are spoken in…?','¿Qué idiomas hablan en …?'],
- ['… our school?','… nuestra escuela?'],
- ['… our class?','… nuestra clase?'],
- ['Students here speak…','Aquí los estudiantes hablan…'],
- ['What percentage of people speak Spanish in Washington State?','En el estado de Washington, ¿qué porcentaje de personas habla español?'],
- ['____% of people speak Spanish here.','El ___ por ciento de personas habla español aquí.'],
- ['What languages do you speak?','¿Qué idiomas hablas?'],
- ['Japanese (language)','…japonés'],
- ['Mandarin Chinese (language)','…chino mandarín'],
- ['Hindi','…hindi'],
- ['Russian','…ruso'],
- ['In my community…','En mi comunidad…'],
- ['In my school…','En mi escuela…'],
- ['In my state…','En mi estado…'],
- ['In my country…','En mi país…'],
- ['The majority of people speak…','La mayoría de las personas habla…']
-];
-assert.match(html,/<option value="languages">Languages and Communities<\/option>/);
-assert.deepEqual(JSON.parse(a.run('JSON.stringify(LANGUAGES.map(card=>card.slice(0,2)))')),pairs);
-assert.equal(a.run('state.order.length'),20);assert.equal(a.nodes.get('vocabulary').children.length,20);
-assert.equal(a.nodes.get('set-heading').textContent,'Languages and Communities · 20 phrases');
-pairs.forEach(([en,es],id)=>{
- const review=a.nodes.get('vocabulary').children[id].children[0].children;
- assert.equal(review[0].textContent,en);assert.equal(review[1].textContent,es);
- const english=id===1?'They speak Spanish in 20 countries.':id===9?'45% of people speak Spanish here.':en;
- const spanish=id===1?'Se habla español en 20 países.':id===9?'El 45 por ciento de personas habla español aquí.':es;
- assert.equal(a.run(`grade(${id},${JSON.stringify(english)},'en','languages')`),true,english);
- assert.equal(a.run(`grade(${id},${JSON.stringify(spanish)},'es','languages')`),true,spanish);
+test("ellipses optional in both languages", () =>
+  assert.equal(
+    app.run(
+      "[12,14,17,19].every(id=>['es','en'].every(dir=>{const a=VOCAB[id][dir==='es'?1:0].replace('…','');return grade(id,a,dir)&&grade(id,a+'...',dir)&&grade(id,a+'…',dir)}))",
+    ),
+    true,
+  ));
+test("ordinary spelling mistakes and different duplicate answers rejected", () => {
+  for (const [id, text] of [
+    [0, "que tall"],
+    [22, "me envies un texto"],
+    [4, "hasta pronto"],
+    [7, "nos vemos"],
+    [21, "me envias un texto"],
+    [3, "encantadoo"],
+  ])
+    assert.equal(app.run(`grade(${id},${JSON.stringify(text)},'es')`), false);
 });
-assert.equal(a.run("grade(9,'El ___ por ciento de personas habla español aquí.','es','languages')"),true);
-assert.equal(a.run("grade(9,'El por ciento de personas habla español aquí.','es','languages')"),false);
+test("English straight and curly apostrophes equivalent", () =>
+  assert.equal(app.run(`grade(0,"What's up?",'en')`), true));
+test("shuffling preserves every card and does not mutate input", () =>
+  assert.equal(
+    app.run(
+      "(()=>{const ids=VOCAB.map((_,i)=>i);return Array.from({length:100},()=>shuffle(ids)).every(x=>x.length===24&&new Set(x).size===24)&&ids.every((id,i)=>id===i)})()",
+    ),
+    true,
+  ));
+test("quiz hides feedback before submission", () =>
+  assert.equal(app.nodes.get("feedback").hidden, true));
+test("blank and punctuation-only responses do not count", () => {
+  app.run("$('answer').value=' ¡?! ';submit()");
+  assert.equal(app.run("counts().answered"), 0);
 });
-test('Languages and Communities progress persists independently',()=>{
-const a=boot();a.run("$('answer').value='everyday draft';$('answer').oninput();selectSet('languages');state=makeRound('es',[1],'full','languages');$('answer').value='Se habla español en 20 países';submit()");
-const b=boot(a.saved());assert.equal(b.run('state.setId'),'languages');assert.equal(b.run('counts().correct'),1);
-b.run("selectSet('everyday')");assert.equal(b.nodes.get('answer').value,'everyday draft');
+test("wrong submission shows exact entered text and accented answer", () => {
+  app.run(
+    "state=makeRound('es',[22]);$('answer').value='me envies un texto';submit()",
+  );
+  assert.equal(app.run("counts().incorrect"), 1);
+  assert.equal(app.nodes.get("feedback").hidden, false);
+  assert.equal(
+    app.nodes.get("feedback").children[1].textContent,
+    "You entered: “me envies un texto”",
+  );
+  assert.equal(
+    app.nodes.get("feedback").children[3].textContent,
+    "Me envías un texto.",
+  );
+});
+test("try again keeps original score", () => {
+  app.run(
+    "$('retry').onclick();$('answer').value='Me envías un texto';submit()",
+  );
+  assert.equal(app.run("counts().incorrect"), 1);
+  assert.equal(app.run("counts().correct"), 0);
+  assert.equal(app.run("state.feedback.correct"), true);
+});
+test("Enter advances and completes; score recorded only once", () => {
+  app.run("$('answer-form').onsubmit({preventDefault(){}})");
+  assert.equal(app.run("state.complete"), true);
+  assert.equal(app.run("history.length"), 1);
+  app.run("submit()");
+  assert.equal(app.run("history.length"), 1);
+});
+test("retry missed creates a separate round of the missed IDs", () => {
+  app.run("$('missed').onclick()");
+  assert.equal(
+    app.run(
+      "state.order.map(id=>SETS[state.setId].cards.findIndex(card=>card.id===id)).join()",
+    ),
+    "22",
+  );
+  assert.equal(app.run("counts().answered"), 0);
+  assert.equal(app.run("state.kind"), "missed");
+});
+test("I do not know counts incorrect and reveals answer", () => {
+  app.run("$('unknown').onclick()");
+  assert.equal(app.run("counts().incorrect"), 1);
+  assert.equal(app.run("state.feedback.skipped"), true);
+});
+test("reload restores pending feedback and scores", () => {
+  const restored = boot(app.saved());
+  assert.equal(restored.run("state.feedback.skipped"), true);
+  assert.equal(restored.run("history.length"), 1);
+  assert.equal(restored.run("counts().incorrect"), 1);
+});
+test("draft is saved and resumed before grading", () => {
+  app.run(
+    "$('retry').onclick();$('answer').value='partial answer';$('answer').oninput()",
+  );
+  const restored = boot(app.saved());
+  assert.equal(restored.nodes.get("answer").value, "partial answer");
+  assert.equal(restored.nodes.get("feedback").hidden, true);
+});
+test("review and return preserve the active card", () => {
+  const before = app.run("JSON.stringify(state)");
+  app.run("showReview()");
+  assert.equal(app.nodes.get("review").hidden, false);
+  app.run("$('back').onclick()");
+  assert.equal(app.run("JSON.stringify(state)"), before);
+});
+test("direction change starts a new reversed round", () => {
+  app.run("$('direction').value='en';$('direction').onchange()");
+  assert.equal(app.run("state.direction"), "en");
+  assert.equal(app.run("state.order.length"), 24);
+  assert.equal(app.run("counts().answered"), 0);
+  assert.equal(app.nodes.get("hint").hidden, true);
+  assert.equal(
+    app.nodes.get("prompt").textContent,
+    app.run("VOCAB[state.order[0]][1]"),
+  );
+});
+test("correct reversed answer exposes the Spanish spelling", () => {
+  app.run(
+    "state=makeRound('en',[0]);$('answer').value=\"What's up?\";submit()",
+  );
+  assert.equal(app.run("counts().correct"), 1);
+  assert.ok(
+    app.nodes
+      .get("feedback")
+      .children.some((n) => n.textContent === "¿Qué tal?"),
+  );
+});
+test("complete round scores, remaining, and recent score cap", () => {
+  app.run(
+    "state=makeRound();for(let i=0;i<24;i++){ $('answer').value=VOCAB[state.order[state.index]][1];submit();submit(); }",
+  );
+  assert.equal(app.run("counts().correct"), 24);
+  assert.equal(app.nodes.get("remaining").textContent, 0);
+  assert.equal(app.nodes.get("percent").textContent, "100%");
+  assert.equal(app.nodes.get("missed").disabled, true);
+  app.run(
+    "for(let i=0;i<12;i++){start([0]);$('answer').value='qué tal';submit();submit();}",
+  );
+  assert.equal(app.run("history.length"), 10);
+});
+test("corrupt and unavailable storage remain usable", () => {
+  assert.equal(boot("{bad").run("state.order.length"), 24);
+  assert.equal(
+    boot(JSON.stringify({ state: { order: [999] } })).run("state.order.length"),
+    24,
+  );
+  const blocked = boot(null, true);
+  assert.equal(blocked.nodes.get("storage-note").hidden, false);
+  assert.equal(blocked.run("state.order.length"), 24);
+});
+test("streak tracks consecutive first attempts and celebrates each multiple of five", () => {
+  const a = boot();
+  a.run("state=makeRound()");
+  for (let i = 1; i <= 24; i++) {
+    a.run("$('answer').value=VOCAB[state.order[state.index]][1];submit()");
+    assert.equal(a.run("streak()"), i);
+    assert.equal(a.nodes.get("streak-count").textContent, i);
+    assert.equal(
+      a.nodes.get("celebration").children.length,
+      i % 5 === 0 ? 1 : 0,
+    );
+    if (i % 5 === 0)
+      assert.equal(
+        a.nodes.get("celebration").children[0].children[3].textContent,
+        `${i} in a row! ¡BRAVO!`,
+      );
+    a.run("submit()");
+  }
+  assert.equal(a.run("streak()"), 24);
+  a.run("start()");
+  assert.equal(a.run("streak()"), 0);
+});
+test("wrong and skipped answers reset momentum; retries never add to it", () => {
+  const a = boot();
+  a.run(
+    "for(let i=0;i<5;i++){$('answer').value=VOCAB[state.order[state.index]][1];submit();if(i<4)submit();}",
+  );
+  assert.equal(a.run("streak()"), 5);
+  a.run(
+    "$('retry').onclick();$('answer').value=VOCAB[state.order[state.index]][1];submit()",
+  );
+  assert.equal(a.run("streak()"), 5);
+  assert.equal(a.nodes.get("celebration").children.length, 0);
+  a.run("submit();$('answer').value='wrong';submit()");
+  assert.equal(a.run("streak()"), 0);
+  a.run(
+    "$('retry').onclick();$('answer').value=VOCAB[state.order[state.index]][1];submit()",
+  );
+  assert.equal(a.run("streak()"), 0);
+  a.run(
+    "submit();$('answer').value=VOCAB[state.order[state.index]][1];submit();submit();$('unknown').onclick()",
+  );
+  assert.equal(a.run("streak()"), 0);
+});
+test("saved streak resumes without replaying fireworks", () => {
+  const a = boot();
+  a.run(
+    "for(let i=0;i<5;i++){$('answer').value=VOCAB[state.order[state.index]][1];submit();if(i<4)submit();}",
+  );
+  const restored = boot(a.saved());
+  assert.equal(restored.run("streak()"), 5);
+  assert.equal(restored.nodes.get("celebration").children.length, 0);
+  assert.equal(restored.nodes.get("mercury").attributes.height, 59.6);
+  restored.run("$('direction').value='en';$('direction').onchange()");
+  assert.equal(restored.run("streak()"), 0);
+});
+test("Personal Information includes all 17 pairs and supports both quiz directions", () => {
+  const a = boot();
+  a.run("selectSet('personal')");
+  assert.equal(a.run("state.order.length"), 17);
+  a.run("renderVocabulary()");
+  assert.equal(a.nodes.get("vocabulary").children.length, 17);
+  assert.equal(
+    a.nodes.get("set-heading").textContent,
+    "Personal Information · 17 phrases",
+  );
+  const spanish = [
+    "¿Dónde naciste?",
+    "Nací en Madrid",
+    "¿De dónde eres?",
+    "Soy de México",
+    "los Estados Unidos",
+    "España",
+    "Soy estadounidense",
+    "Soy mexicana",
+    "¿Dónde vives?",
+    "Vivo en San Diego",
+    "¿Cuál es tu dirección?",
+    "Mi dirección es 123 Calle Sol",
+    "¿Cuántos años tienes?",
+    "Tengo 13 años",
+    "¿Cuándo es tu cumpleaños?",
+    "Mi cumpleaños es el 4 de mayo",
+    "el primero de junio",
+  ];
+  const english = [
+    "Where were you born?",
+    "I was born in Madrid",
+    "Where are you from?",
+    "I am from Mexico",
+    "the United States",
+    "Spain",
+    "I am American",
+    "I am Mexican",
+    "Where do you live?",
+    "I live in San Diego",
+    "What is your address?",
+    "My address is 123 Sun Street",
+    "How old are you?",
+    "I am 13 years old",
+    "When is your birthday?",
+    "My birthday is the 4th of May",
+    "the first of June",
+  ];
+  for (let id = 0; id < 17; id++)
+    for (const [dir, answer] of [
+      ["es", spanish[id]],
+      ["en", english[id]],
+    ]) {
+      assert.equal(
+        a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','personal')`),
+        true,
+        answer,
+      );
+      assert.equal(
+        a.run(
+          `grade(${id},${JSON.stringify(
+            answer
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .toUpperCase(),
+          )},'${dir}','personal')`,
+        ),
+        true,
+        answer + " accentless",
+      );
+    }
+  for (const word of ["mexicano", "mexicana"])
+    assert.equal(a.run(`grade(7,'Soy ${word}','es','personal')`), true);
+  assert.equal(
+    a.run("grade(4,'Soy de los Estados Unidos','es','personal')"),
+    true,
+  );
+  assert.equal(a.run("grade(5,'I am from Spain','en','personal')"), true);
+});
+test("templates require filled blanks and correctly spelled fixed words", () => {
+  const a = boot();
+  for (const [id, answer, dir] of [
+    [1, "Nacii en Madrid", "es"],
+    [3, "Soy del Madrid", "es"],
+    [13, "Tengo ___ años", "es"],
+    [13, "Tengo años", "es"],
+    [13, "Tengo 13 anos extra", "es"],
+    [15, "Mi cumpleaños es el de mayo", "es"],
+    [15, "Mi cumpleaños es el 4 de", "es"],
+    [15, "Mi cumpleanos el 4 de mayo", "es"],
+    [15, "My birthday is the of May", "en"],
+    [7, "Soy mexican", "es"],
+    [0, "Donde nacistes", "es"],
+  ])
+    assert.equal(
+      a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','personal')`),
+      false,
+      answer,
+    );
+});
+test("all ellipsis phrases accept bare phrases, literal ellipses, or supplied endings", () => {
+  const a = boot();
+  assert.equal(
+    a.run(
+      "Object.entries(SETS).every(([setId,set])=>set.cards.every((card,id)=>['es','en'].every(dir=>{const text=card.prompt[dir==='es'?'es':'en'];if(setId==='comparisons' || setId==='opinions' || card.template || !/(?:\\.{3}|…)$/.test(text))return true;const bare=text.replace(/(?:\\.{3}|…)$/,'');return [bare,text,bare+' Madrid'].every(answer=>grade(id,answer,dir,setId));})))",
+    ),
+    true,
+  );
+  a.run(
+    "state=makeRound('es',[9],'full','personal');$('answer').value='Vivo en';submit()",
+  );
+  assert.equal(a.run("state.feedback.correct"), true);
+  assert.equal(a.nodes.get("feedback").children[3].textContent, "Vivo en...");
+});
+test("switching sets and reloading preserves independent rounds, drafts, and feedback", () => {
+  const a = boot();
+  a.run("$('unknown').onclick()");
+  const old = a.run("JSON.stringify(state)");
+  a.run(
+    "$('study-set').value='personal';$('study-set').onchange();$('answer').value='Nací en Madrid';$('answer').oninput()",
+  );
+  const personal = a.run("JSON.stringify(state)");
+  a.run("selectSet('everyday')");
+  assert.equal(a.run("JSON.stringify(state)"), old);
+  const b = boot(a.saved());
+  b.run("selectSet('personal')");
+  assert.equal(b.run("JSON.stringify(state)"), personal);
+  assert.equal(b.nodes.get("answer").value, "Nací en Madrid");
+  b.run("$('direction').value='en';$('direction').onchange()");
+  assert.equal(b.run("state.setId"), "personal");
+  assert.equal(b.run("state.order.length"), 17);
+  b.run("selectSet('everyday')");
+  assert.equal(b.run("JSON.stringify(state)"), old);
+});
+test("legacy saves migrate without losing order, first attempts, draft, feedback or history", () => {
+  const a = boot();
+  a.run(
+    "state=makeRound('es',[0,1]);state.order=LEGACY_CARD_IDS.everyday.slice(0,2);$('answer').value='que tal';submit();submit();$('answer').value='draft';$('answer').oninput()",
+  );
+  const legacy = legacySave(a.saved());
+  delete legacy.state.setId;
+  delete legacy.rounds;
+  legacy.history = [
+    {
+      date: "2026-09-18T00:00:00.000Z",
+      correct: 20,
+      total: 24,
+      direction: "es",
+      kind: "full",
+    },
+  ];
+  const b = boot(JSON.stringify(legacy));
+  assert.equal(b.run("state.setId"), "everyday");
+  assert.equal(b.run("state.index"), 1);
+  assert.equal(b.run("state.draft"), "draft");
+  assert.equal(b.run("streak()"), 1);
+  assert.equal(b.run("history[0].correct"), 20);
+  assert.equal(b.run("history[0].setId"), "everyday");
+  b.run("selectSet('personal');selectSet('everyday')");
+  assert.equal(b.nodes.get("answer").value, "draft");
+  const completed = {
+    ...legacy.state,
+    index: 2,
+    complete: true,
+    draft: "",
+    results: { 0: true, 1: false },
+    feedback: null,
+  };
+  const c = boot(JSON.stringify({ state: completed, history: legacy.history }));
+  assert.equal(c.run("state.complete"), true);
+  assert.equal(c.nodes.get("summary").hidden, false);
+  c.run("$('missed').onclick()");
+  assert.equal(
+    c.run(
+      "state.order.map(id=>SETS[state.setId].cards.findIndex(card=>card.id===id)).join()",
+    ),
+    "1",
+  );
+});
+test("personal feedback, missed rounds, summaries and scores use the selected set", () => {
+  const a = boot();
+  a.run(
+    "state=makeRound('es',[0], 'full','personal');$('answer').value='donde naciste';submit()",
+  );
+  assert.equal(
+    a.nodes.get("feedback").children[3].textContent,
+    "¿Dónde naciste?",
+  );
+  a.run("submit()");
+  assert.equal(a.run("history[0].setId"), "personal");
+  assert.equal(a.nodes.get("final-percent").textContent, "100%");
+  a.run("start([13]);$('unknown').onclick();submit();$('missed').onclick()");
+  assert.equal(a.run("state.setId"), "personal");
+  assert.equal(
+    a.run(
+      "state.order.map(id=>SETS[state.setId].cards.findIndex(card=>card.id===id)).join()",
+    ),
+    "13",
+  );
+  a.run("$('answer').value='Tengo 13 anos';submit()");
+  assert.equal(a.run("counts().correct"), 1);
+  assert.equal(
+    a.nodes.get("feedback").children[3].textContent,
+    "Tengo ___ años.",
+  );
+  a.run("$('new-round').onclick()");
+  assert.equal(a.run("state.order.length"), 17);
+  a.run(
+    "state=makeRound('en',[15],'full','personal');$('answer').value='My birthday is the 4th of May';submit()",
+  );
+  assert.ok(
+    a.nodes
+      .get("feedback")
+      .children.some(
+        (n) => n.textContent === "Mi cumpleaños es el ___ de ___.",
+      ),
+  );
+});
+test("reload repairs an outdated rejection of vivo en and its first-attempt score", () => {
+  const a = boot();
+  a.run(
+    "state=makeRound('es',[9],'full','personal');$('answer').value=' vivo en';submit()",
+  );
+  const saved = JSON.parse(a.saved());
+  saved.state.feedback.correct = false;
+  saved.state.results[saved.state.order[saved.state.index]] = false;
+  const b = boot(JSON.stringify(saved));
+  assert.equal(b.run("state.feedback.correct"), true);
+  assert.equal(b.run("counts().correct"), 1);
+  assert.equal(b.run("counts().incorrect"), 0);
+  assert.equal(b.run("streak()"), 1);
+  assert.equal(b.nodes.get("feedback").children[3].textContent, "Vivo en...");
+  assert.equal(b.nodes.get("celebration").children.length, 0);
+  const c = boot(b.saved());
+  assert.equal(c.run("counts().correct"), 1);
+});
+test("saved feedback repair never awards credit to skipped cards or practice retries", () => {
+  const a = boot();
+  a.run(
+    "state=makeRound('es',[9],'full','personal');$('answer').value='vivo en';submit()",
+  );
+  const saved = JSON.parse(a.saved());
+  saved.state.feedback.correct = false;
+  saved.state.results[saved.state.order[saved.state.index]] = false;
+  saved.state.feedback.practice = true;
+  const retry = boot(JSON.stringify(saved));
+  assert.equal(retry.run("state.feedback.correct"), true);
+  assert.equal(retry.run("counts().incorrect"), 1);
+  saved.state.feedback.practice = false;
+  saved.state.feedback.skipped = true;
+  const skipped = boot(JSON.stringify(saved));
+  assert.equal(skipped.run("state.feedback.correct"), false);
+  assert.equal(skipped.run("counts().incorrect"), 1);
+  saved.state.feedback.skipped = false;
+  saved.state.feedback.answer = "vivo enn";
+  const typo = boot(JSON.stringify(saved));
+  assert.equal(typo.run("state.feedback.correct"), false);
 });
 
-test('Comparisons includes 13 worksheet entries with accents and variants',()=>{
- const a=boot();a.run("selectSet('comparisons')");assert.equal(a.run('state.order.length'),13);assert.equal(a.nodes.get('vocabulary').children.length,13);
- assert.equal(a.run("COMPARISONS.every((card,id)=>grade(id,card[0],'en','comparisons')&&grade(id,card[1],'es','comparisons'))"),true);
- for(const [id,answer] of [[0,'le gusta'],[0,'le gustan'],[1,'les gusta'],[1,'les gustan'],[2,'mas que'],[12,'tiempo libre'],[12,'ocio']])assert.equal(a.run('grade('+id+','+JSON.stringify(answer)+',"es","comparisons")'),true);
- for(const answer of ['he likes','she likes'])assert.equal(a.run('grade(0,'+JSON.stringify(answer)+',"en","comparisons")'),true);
- assert.equal(a.run("grade(0,'les gusta','es','comparisons')"),false);
- assert.equal(a.run("grade(3,'mas que','es','comparisons')"),false);
+test("Feelings contains 17 pairs accepted in both directions", () => {
+  const a = boot();
+  a.run("selectSet('feelings')");
+  assert.equal(a.run("state.order.length"), 17);
+  a.run("renderVocabulary()");
+  assert.equal(a.nodes.get("vocabulary").children.length, 17);
+  assert.equal(
+    a.run(
+      "FEELINGS.every((card,id)=>grade(id,card[0],'en','feelings')&&grade(id,card[1],'es','feelings'))",
+    ),
+    true,
+  );
+  assert.equal(
+    a.run(
+      "grade(0,'Como estas','es','feelings')&&grade(1,'Como esta usted','es','feelings')&&grade(14,'yo tambien','es','feelings')",
+    ),
+    true,
+  );
+  assert.equal(a.run("grade(0,'Como esta usted','es','feelings')"), false);
+  assert.equal(a.run("grade(1,'Como estas','es','feelings')"), false);
 });
-test('Comparison templates accept optional placeholders and supplied text in each slot',()=>{
- const a=boot();
- for(const [id,answer,dir] of [[4,'A Pedro le gusta leer pero a Jimena le gusta nadar','es'],[4,'Pedro likes reading but Jimena likes swimming','en'],[6,'Es similar a','es'],[7,'It is different from','en'],[9,'El futbol es mas popular en España','es'],[9,'Soccer is more popular in Spain','en'],[9,'es mas popular en','es'],[11,'Leo un promedio de 12 libros en el año','es'],[11,'I read about 12 books a year','en'],[11,'Leo un promedio de libros en el año','es']])assert.equal(a.run('grade('+id+','+JSON.stringify(answer)+','+JSON.stringify(dir)+',"comparisons")'),true,answer);
- assert.equal(a.run("grade(9,'el futbol es menos popular en España','es','comparisons')"),false);
- assert.equal(a.run("grade(11,'Leo un promedo de 12 libros en el año','es','comparisons')"),false);
+test("Feelings accepts both gender forms and English alternatives without accepting typos", () => {
+  const a = boot();
+  assert.equal(
+    a.run(
+      "FEELINGS.slice(6,14).every((card,i)=>card[1].replace(/^…/,'').split('/').every(word=>grade(i+6,word,'es','feelings')&&grade(i+6,'Estoy '+word,'es','feelings')))",
+    ),
+    true,
+  );
+  assert.equal(
+    a.run(
+      "Object.entries(FEELINGS_ENGLISH).every(([id,answers])=>answers.every(answer=>grade(Number(id),answer,'en','feelings')))",
+    ),
+    true,
+  );
+  assert.equal(a.run("grade(7,'cansadoo','es','feelings')"), false);
 });
-test('Comparisons saves independently and supports feedback, scores and missed rounds',()=>{
- const a=boot();a.run("$('answer').value='existing draft';$('answer').oninput();selectSet('comparisons');state=makeRound('es',[2],'full','comparisons');$('answer').value='mas que';submit()");
- assert.equal(a.nodes.get('feedback').children[3].textContent,'más que');const b=boot(a.saved());assert.equal(b.run('counts().correct'),1);
- b.run("submit()");assert.equal(b.run('history[0].setId'),'comparisons');b.run("start([0]);$('unknown').onclick();submit();$('missed').onclick()");assert.equal(b.run('state.order.join()'),'0');
- b.run("selectSet('everyday')");assert.equal(b.nodes.get('answer').value,'existing draft');
+test("Feelings progress survives reload and switching lessons", () => {
+  const a = boot();
+  a.run(
+    "$('answer').value='old draft';$('answer').oninput();selectSet('personal');$('answer').value='personal draft';$('answer').oninput();selectSet('feelings');state=makeRound('es',[7],'full','feelings');$('answer').value='cansada';submit()",
+  );
+  assert.equal(
+    a.nodes.get("feedback").children[3].textContent,
+    "…cansado/cansada",
+  );
+  const b = boot(a.saved());
+  assert.equal(b.run("state.setId"), "feelings");
+  assert.equal(b.run("counts().correct"), 1);
+  b.run("selectSet('everyday')");
+  assert.equal(b.nodes.get("answer").value, "old draft");
+  b.run("selectSet('personal')");
+  assert.equal(b.nodes.get("answer").value, "personal draft");
+  b.run("selectSet('feelings');submit()");
+  assert.equal(b.run("history[0].setId"), "feelings");
+  assert.equal(b.nodes.get("final-percent").textContent, "100%");
 });
 
-test('Family includes all 15 photo pairs and accepts canonical answers in both directions',()=>{
- const a=boot();a.run("selectSet('family')");assert.equal(a.run('state.order.length'),15);assert.equal(a.nodes.get('vocabulary').children.length,15);
- assert.equal(a.run("FAMILY.every((card,id)=>grade(id,card[0],'en','family')&&grade(id,card[1],'es','family'))"),true);
- assert.equal(a.nodes.get('set-heading').textContent,'Family · 15 phrases');
+test("Personality includes all 22 pairs and accepts both gender forms and optional words", () => {
+  const a = boot();
+  a.run("selectSet('personality')");
+  assert.equal(a.run("PERSONALITY.length"), 22);
+  assert.equal(a.run("state.order.length"), 22);
+  a.run("renderVocabulary()");
+  assert.equal(a.nodes.get("vocabulary").children.length, 22);
+  assert.equal(
+    a.nodes.get("set-heading").textContent,
+    "Personality · 22 phrases",
+  );
+  assert.equal(
+    a.run(
+      "PERSONALITY.every((card,id)=>grade(id,card[0],'en','personality')&&grade(id,card[1],'es','personality'))",
+    ),
+    true,
+  );
+  assert.equal(
+    a.run(
+      "Object.entries(PERSONALITY_SPANISH).every(([id,forms])=>forms.every(form=>grade(Number(id),form,'es','personality')))",
+    ),
+    true,
+  );
+  for (const [id, answers, dir] of [
+    [7, ["Soy muy joven", "No soy muy joven"], "es"],
+    [7, ["I am very young", "I am not very young"], "en"],
+    [17, ["A mí tampoco", "A mí tampoco me gusta"], "es"],
+    [17, ["Me neither", "I also don’t like it"], "en"],
+  ])
+    for (const answer of answers)
+      assert.equal(
+        a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','personality')`),
+        true,
+        answer,
+      );
+  assert.equal(a.run("grade(1,'actuvo','es','personality')"), false);
 });
-test('Family accepts listed gender forms, accentless answers, and optional template endings',()=>{
- const a=boot();
- for(const [id,answer,dir] of [[0,'Cuantas personas hay en tu familia','es'],[3,'un hermano','es'],[3,'una hermana','es'],[3,'a sister','en'],[6,'Soy hijo unico','es'],[6,'Soy hija unica','es'],[6,'Soy hije unique','es'],[8,'Vivo con mis','es'],[8,'Vivo con mi padre','es'],[9,'padre','es'],[10,'madre','es'],[12,'Es mi','es'],[12,'Es mi madre','es'],[12,'It is my mother','en'],[14,'Son mis','es'],[14,'Son mis hermanos','es'],[14,'They are my siblings','en']])assert.equal(a.run('grade('+id+','+JSON.stringify(answer)+','+JSON.stringify(dir)+',"family")'),true,answer);
- for(const [id,answer] of [[3,'un hermana'],[6,'Soy hijo unica'],[7,'Con quien vive'],[9,'madre'],[13,'Quien es']])assert.equal(a.run('grade('+id+','+JSON.stringify(answer)+',"es","family")'),false,answer);
+test("Personality progress persists independently across reloads and study sets", () => {
+  const a = boot();
+  a.run(
+    "selectSet('personality');state=makeRound('es',[1],'full','personality');$('answer').value='activa';submit();$('answer').value='draft';$('answer').oninput();selectSet('feelings')",
+  );
+  const b = boot(a.saved());
+  b.run("selectSet('personality')");
+  assert.equal(b.run("state.setId"), "personality");
+  assert.equal(b.run("counts().correct"), 1);
+  assert.equal(b.nodes.get("answer").value, "draft");
 });
-test('Family keeps independent progress, accented feedback, missed cards and recent scores',()=>{
- const a=boot();a.run("$('answer').value='existing draft';$('answer').oninput();selectSet('family');state=makeRound('es',[0],'full','family');$('answer').value='Cuantas personas hay en tu familia';submit()");
- assert.equal(a.nodes.get('feedback').children[3].textContent,'¿Cuántas personas hay en tu familia?');
- const b=boot(a.saved());assert.equal(b.run('state.setId'),'family');assert.equal(b.run('counts().correct'),1);b.run('submit()');assert.equal(b.run('history[0].setId'),'family');
- b.run("start([3]);$('unknown').onclick();submit();$('missed').onclick()");assert.equal(b.run('state.order.join()'),'3');b.run("selectSet('everyday')");assert.equal(b.nodes.get('answer').value,'existing draft');
+
+test("Opinions contains the 18 entries plus six practice variants and examples", () => {
+  const a = boot();
+  a.run("selectSet('opinionsAdvanced')");
+  assert.equal(a.run("OPINIONS.length"), 24);
+  assert.equal(a.run("state.order.length"), 24);
+  a.run("renderVocabulary()");
+  assert.equal(a.nodes.get("vocabulary").children.length, 24);
+  assert.equal(
+    a.run(
+      "OPINIONS.every((_,id)=>['es','en'].every(dir=>grade(id,practiceCard('opinionsAdvanced',id)[dir==='es'?'es':'en'],dir,'opinionsAdvanced')))",
+    ),
+    true,
+  );
+  assert.equal(
+    a.run(
+      "OPINIONS.every((_,id)=>!/[…_]|\\(n\\)/.test(Object.values(practiceCard('opinionsAdvanced',id)).join(' ')))",
+    ),
+    true,
+  );
+});
+test("Opinions grades agreement in complete sentences and preserves articles", () => {
+  const a = boot();
+  for (const [id, answer] of [
+    [4, "Te gusta las clases de español"],
+    [5, "Me gusta las clases de español"],
+    [12, "Me encanta las clases de español"],
+    [18, "Te gustan el baloncesto"],
+    [19, "Me gustan el baloncesto"],
+    [21, "Me encantan la clase de español"],
+    [1, "baloncesto"],
+    [2, "tarea"],
+  ])
+    assert.equal(
+      a.run(
+        "grade(" +
+          id +
+          "," +
+          JSON.stringify(answer) +
+          ',"es","opinionsAdvanced")',
+      ),
+      false,
+      answer,
+    );
+  assert.equal(
+    a.run("grade(4,'Te gustan las clases de espanol','es','opinionsAdvanced')"),
+    true,
+  );
+  assert.equal(
+    a.run("grade(18,'Te gusta el baloncesto','es','opinionsAdvanced')"),
+    true,
+  );
+});
+test("Opinions accepts equivalent English translations and supplies accent guidance", () => {
+  const a = boot();
+  for (const [id, answer] of [
+    [3, "You like Spanish class, right?"],
+    [11, "I like neither basketball nor homework"],
+    [15, "I do not like homework either"],
+    [17, "I really like Spanish classes"],
+    [23, "I do not like basketball or homework"],
+  ])
+    assert.equal(
+      a.run(
+        "grade(" +
+          id +
+          "," +
+          JSON.stringify(answer) +
+          ',"en","opinionsAdvanced")',
+      ),
+      true,
+      answer,
+    );
+  a.run(
+    "state=makeRound('es',[17],'full','opinionsAdvanced');$('answer').value='Me gustan muchisimo las clases de espanol';submit()",
+  );
+  assert.equal(a.run("counts().correct"), 1);
+  assert.ok(
+    a.nodes
+      .get("feedback")
+      .children.some((n) =>
+        n.textContent.includes("Spelling reminder: muchísimo, español"),
+      ),
+  );
+});
+test("Opinions rounds restore without changing existing lessons and support missed-card practice", () => {
+  const a = boot();
+  a.run(
+    "selectSet('feelings');$('answer').value='my draft';$('answer').oninput();selectSet('opinionsAdvanced');state=makeRound('es',[1],'full','opinionsAdvanced');$('unknown').onclick();submit();$('missed').onclick()",
+  );
+  assert.equal(
+    a.run(
+      "state.order.map(id=>SETS[state.setId].cards.findIndex(card=>card.id===id)).join()",
+    ),
+    "1",
+  );
+  assert.equal(a.run("state.setId"), "opinionsAdvanced");
+  const b = boot(a.saved());
+  assert.equal(b.run("state.kind"), "missed");
+  b.run("$('answer').value='el baloncesto';submit();submit()");
+  assert.equal(b.run("history[0].setId"), "opinionsAdvanced");
+  assert.equal(b.nodes.get("final-percent").textContent, "100%");
+  b.run("selectSet('feelings')");
+  assert.equal(b.nodes.get("answer").value, "my draft");
+  b.run(
+    "selectSet('opinionsAdvanced');$('direction').value='en';$('direction').onchange()",
+  );
+  assert.equal(b.run("state.order.length"), 24);
+  assert.equal(b.run("state.direction"), "en");
+});
+
+test("natural English alternatives preserve the meaning of the opinions prompt", () => {
+  const a = boot();
+  assert.equal(
+    a.run("grade(10,'I like both of them','en','opinionsAdvanced')"),
+    true,
+  );
+  assert.equal(
+    a.run(
+      "grade(3,'You like Spanish class, do you not?','en','opinionsAdvanced')",
+    ),
+    true,
+  );
+  assert.equal(
+    a.run(
+      "grade(11,'I do not like basketball and I do not like homework','en','opinionsAdvanced')",
+    ),
+    true,
+  );
+  assert.equal(
+    a.run("grade(10,'I like one of them','en','opinionsAdvanced')"),
+    false,
+  );
+});
+test("saved progress rejects future scores and feedback without an attempt", () => {
+  const a = boot();
+  assert.equal(
+    a.run(
+      "(()=>{const s=makeRound();s.results[s.order[2]]=true;return validRound(s)})()",
+    ),
+    false,
+  );
+  assert.equal(
+    a.run(
+      "(()=>{const s=makeRound();s.feedback={answer:'test',correct:true};return validRound(s)})()",
+    ),
+    false,
+  );
+  assert.equal(
+    a.run(
+      "(()=>{const s=makeRound();s.setId='constructor';return validRound(s)})()",
+    ),
+    false,
+  );
+  a.run("$('unknown').onclick();$('retry').onclick()");
+  assert.equal(a.run("validRound(state)"), true);
+  const b = boot(a.saved());
+  assert.equal(b.run("counts().incorrect"), 1);
+});
+
+test("Basic defaults to the 18 worksheet phrases and accepts me gustan without an ending", () => {
+  const a = boot();
+  a.run(
+    "selectSet('opinions');state=makeRound('es',[5],'full','opinions');render()",
+  );
+  assert.equal(a.nodes.get("prompt").textContent, "I like…");
+  assert.equal(a.nodes.get("advanced").checked, false);
+  a.run("$('answer').value='me gustan';submit()");
+  assert.equal(a.run("counts().correct"), 1);
+  assert.equal(a.nodes.get("feedback").children[3].textContent, "Me gustan…");
+  assert.equal(a.run("grade(5,'me gusta','es','opinions')"), false);
+  for (const answer of ["me encanta", "me encantan"])
+    assert.equal(
+      a.run("grade(12," + JSON.stringify(answer) + ',"es","opinions")'),
+      true,
+    );
+  for (const answer of ["Me gusta tambien", "Me gustan tambien"])
+    assert.equal(
+      a.run("grade(14," + JSON.stringify(answer) + ',"es","opinions")'),
+      true,
+    );
+  a.run("start()");
+  assert.equal(a.run("state.order.length"), 18);
+  a.run("renderVocabulary()");
+  assert.equal(a.nodes.get("vocabulary").children.length, 18);
+});
+test("Advanced toggle preserves separate rounds, typed drafts, and reload preference", () => {
+  const a = boot();
+  a.run(
+    "selectSet('opinions');$('answer').value='basic draft';$('answer').oninput();$('advanced').checked=true;$('advanced').onchange()",
+  );
+  assert.equal(a.run("state.order.length"), 24);
+  assert.equal(a.run("state.setId"), "opinionsAdvanced");
+  a.run("$('answer').value='advanced draft';$('answer').oninput()");
+  const b = boot(a.saved());
+  assert.equal(b.nodes.get("advanced").checked, true);
+  b.run("$('advanced').checked=false;$('advanced').onchange()");
+  assert.equal(b.nodes.get("answer").value, "basic draft");
+  b.run("$('advanced').checked=true;$('advanced').onchange()");
+  assert.equal(b.nodes.get("answer").value, "advanced draft");
+});
+test("existing complete-sentence progress migrates to Advanced while Basic becomes default", () => {
+  const a = boot();
+  a.run("selectSet('opinionsAdvanced');$('unknown').onclick()");
+  const saved = legacySave(a.saved());
+  delete saved.basicAdvanced;
+  saved.state.setId = "opinions";
+  saved.rounds.opinions = { ...saved.state };
+  delete saved.rounds.opinionsAdvanced;
+  const b = boot(JSON.stringify(saved));
+  assert.equal(b.run("state.setId"), "opinions");
+  assert.equal(b.run("state.order.length"), 18);
+  b.run("selectSet('opinionsAdvanced')");
+  assert.equal(b.run("counts().incorrect"), 1);
+  assert.equal(b.run("state.feedback.skipped"), true);
+});
+test("Activities & Preferences includes all 17 requested pairs in review and both directions", () => {
+  const a = boot();
+  a.run("selectSet('activities')");
+  const pairs = [
+    ["What do you like to do?", "¿Qué te gusta hacer?"],
+    ["What do you prefer to do?", "¿Qué prefieres hacer?"],
+    ["I prefer…", "Prefiero…"],
+    ["to swim", "nadar"],
+    ["to dance", "bailar"],
+    ["to listen to music", "escuchar música"],
+    ["to hang out with friends", "estar con amigos"],
+    ["to read", "leer"],
+    ["to watch TV", "mirar la televisión"],
+    ["to go to the movies", "ir al cine"],
+    ["because I need to…", "porque necesito…"],
+    ["to study", "estudiar"],
+    ["to practice", "practicar"],
+    ["to relax", "relajarme"],
+    ["because I am (not)…", "porque yo (no) soy…"],
+    ["a good friend (feminine)", "una buena amiga"],
+    ["a good friend (masculine)", "un buen amigo"],
+  ];
+  assert.match(
+    html,
+    /<option value="activities">Activities &amp; Preferences<\/option>/,
+  );
+  assert.deepEqual(
+    JSON.parse(a.run("JSON.stringify(ACTIVITIES.map(card=>card.slice(0,2)))")),
+    pairs,
+  );
+  assert.equal(a.run("state.order.length"), 17);
+  assert.equal(a.run("new Set(state.order).size"), 17);
+  assert.equal(
+    a.nodes.get("set-heading").textContent,
+    "Activities & Preferences · 17 phrases",
+  );
+  a.run("renderVocabulary()");
+  assert.equal(a.nodes.get("vocabulary").children.length, 17);
+  pairs.forEach(([en, es], id) => {
+    const review = a.nodes.get("vocabulary").children[id].children[0].children;
+    assert.equal(review[0].textContent, en);
+    assert.equal(review[1].textContent, es);
+    for (const [dir, answer] of [
+      ["en", en],
+      ["es", es],
+    ]) {
+      assert.equal(
+        a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','activities')`),
+        true,
+        answer,
+      );
+      assert.equal(
+        a.run(
+          `grade(${id},${JSON.stringify(
+            answer
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .toUpperCase(),
+          )},'${dir}','activities')`,
+        ),
+        true,
+      );
+    }
+  });
+});
+test("Activities accepts optional negatives and endings but rejects typos and wrong gender", () => {
+  const a = boot();
+  for (const [id, answers, dir] of [
+    [2, ["Prefiero", "Prefiero nadar"], "es"],
+    [10, ["porque necesito", "porque necesito estudiar"], "es"],
+    [
+      14,
+      ["porque yo soy", "porque yo no soy", "porque yo no soy un buen amigo"],
+      "es",
+    ],
+    [
+      14,
+      ["because I am", "because I am not", "because I am not a good friend"],
+      "en",
+    ],
+    [15, ["a good friend"], "en"],
+    [16, ["a good friend"], "en"],
+  ])
+    for (const answer of answers)
+      assert.equal(
+        a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','activities')`),
+        true,
+        answer,
+      );
+  for (const [id, answer, dir] of [
+    [0, "Que te gusta", "es"],
+    [3, "nadar extra", "es"],
+    [5, "escuchar musico", "es"],
+    [14, "porque yo no soyy", "es"],
+    [15, "un buen amigo", "es"],
+    [16, "una buena amiga", "es"],
+    [15, "a good friend (masculine)", "en"],
+  ]) {
+    assert.equal(
+      a.run(`grade(${id},${JSON.stringify(answer)},'${dir}','activities')`),
+      false,
+      answer,
+    );
+  }
+});
+test("Activities keeps independent progress, feedback, missed cards and scores across reloads", () => {
+  const a = boot();
+  a.run(
+    "$('answer').value='existing draft';$('answer').oninput();selectSet('activities');state=makeRound('es',[5],'full','activities');$('answer').value='escuchar musica';submit()",
+  );
+  assert.equal(
+    a.nodes.get("feedback").children[3].textContent,
+    "escuchar música",
+  );
+  const b = boot(a.saved());
+  assert.equal(b.run("state.setId"), "activities");
+  assert.equal(b.run("counts().correct"), 1);
+  b.run("selectSet('everyday')");
+  assert.equal(b.nodes.get("answer").value, "existing draft");
+  b.run("selectSet('activities');submit()");
+  assert.equal(b.run("history[0].setId"), "activities");
+  b.run("start([16]);$('unknown').onclick();submit();$('missed').onclick()");
+  assert.equal(b.run("state.setId"), "activities");
+  assert.equal(
+    b.run(
+      "state.order.map(id=>SETS[state.setId].cards.findIndex(card=>card.id===id)).join()",
+    ),
+    "16",
+  );
+  b.run("$('answer').value='un buen amigo';submit();submit()");
+  assert.equal(b.nodes.get("final-percent").textContent, "100%");
+  b.run("$('direction').value='en';$('direction').onchange()");
+  assert.equal(b.run("state.order.length"), 17);
+  assert.equal(b.run("state.direction"), "en");
+  assert.equal(
+    b.nodes.get("prompt").textContent,
+    b.run("ACTIVITIES[state.order[0]][1]"),
+  );
+  b.run("$('answer').value='saved activities draft';$('answer').oninput()");
+  const c = boot(b.saved());
+  assert.equal(c.nodes.get("answer").value, "saved activities draft");
+});
+test("Languages and Communities includes all 20 requested pairs and accepts filled blanks in both directions", () => {
+  const a = boot();
+  a.run("selectSet('languages')");
+  const pairs = [
+    ["Where do they speak Spanish?", "¿Dónde se habla español?"],
+    ["They speak Spanish in # countries.", "Se habla español en … países."],
+    ["Do they speak Spanish in Brazil?", "¿Se habla español en Brasil?"],
+    [
+      "No, in Brazil they speak Portuguese.",
+      "No, en Brasil se habla portugués.",
+    ],
+    ["What languages are spoken in…?", "¿Qué idiomas hablan en …?"],
+    ["… our school?", "… nuestra escuela?"],
+    ["… our class?", "… nuestra clase?"],
+    ["Students here speak…", "Aquí los estudiantes hablan…"],
+    [
+      "What percentage of people speak Spanish in Washington State?",
+      "En el estado de Washington, ¿qué porcentaje de personas habla español?",
+    ],
+    [
+      "____% of people speak Spanish here.",
+      "El ___ por ciento de personas habla español aquí.",
+    ],
+    ["What languages do you speak?", "¿Qué idiomas hablas?"],
+    ["Japanese (language)", "…japonés"],
+    ["Mandarin Chinese (language)", "…chino mandarín"],
+    ["Hindi", "…hindi"],
+    ["Russian", "…ruso"],
+    ["In my community…", "En mi comunidad…"],
+    ["In my school…", "En mi escuela…"],
+    ["In my state…", "En mi estado…"],
+    ["In my country…", "En mi país…"],
+    ["The majority of people speak…", "La mayoría de las personas habla…"],
+  ];
+  assert.match(
+    html,
+    /<option value="languages">Languages and Communities<\/option>/,
+  );
+  assert.deepEqual(
+    JSON.parse(a.run("JSON.stringify(LANGUAGES.map(card=>card.slice(0,2)))")),
+    pairs,
+  );
+  assert.equal(a.run("state.order.length"), 20);
+  a.run("renderVocabulary()");
+  assert.equal(a.nodes.get("vocabulary").children.length, 20);
+  assert.equal(
+    a.nodes.get("set-heading").textContent,
+    "Languages and Communities · 20 phrases",
+  );
+  pairs.forEach(([en, es], id) => {
+    const review = a.nodes.get("vocabulary").children[id].children[0].children;
+    assert.equal(review[0].textContent, en);
+    assert.equal(review[1].textContent, es);
+    const english =
+      id === 1
+        ? "They speak Spanish in 20 countries."
+        : id === 9
+          ? "45% of people speak Spanish here."
+          : en;
+    const spanish =
+      id === 1
+        ? "Se habla español en 20 países."
+        : id === 9
+          ? "El 45 por ciento de personas habla español aquí."
+          : es;
+    assert.equal(
+      a.run(`grade(${id},${JSON.stringify(english)},'en','languages')`),
+      true,
+      english,
+    );
+    assert.equal(
+      a.run(`grade(${id},${JSON.stringify(spanish)},'es','languages')`),
+      true,
+      spanish,
+    );
+  });
+  assert.equal(
+    a.run(
+      "grade(9,'El ___ por ciento de personas habla español aquí.','es','languages')",
+    ),
+    true,
+  );
+  assert.equal(
+    a.run(
+      "grade(9,'El por ciento de personas habla español aquí.','es','languages')",
+    ),
+    false,
+  );
+});
+test("Languages and Communities progress persists independently", () => {
+  const a = boot();
+  a.run(
+    "$('answer').value='everyday draft';$('answer').oninput();selectSet('languages');state=makeRound('es',[1],'full','languages');$('answer').value='Se habla español en 20 países';submit()",
+  );
+  const b = boot(a.saved());
+  assert.equal(b.run("state.setId"), "languages");
+  assert.equal(b.run("counts().correct"), 1);
+  b.run("selectSet('everyday')");
+  assert.equal(b.nodes.get("answer").value, "everyday draft");
+});
+
+test("Comparisons includes 13 worksheet entries with accents and variants", () => {
+  const a = boot();
+  a.run("selectSet('comparisons')");
+  assert.equal(a.run("state.order.length"), 13);
+  a.run("renderVocabulary()");
+  assert.equal(a.nodes.get("vocabulary").children.length, 13);
+  assert.equal(
+    a.run(
+      "COMPARISONS.every((card,id)=>grade(id,card[0],'en','comparisons')&&grade(id,card[1],'es','comparisons'))",
+    ),
+    true,
+  );
+  for (const [id, answer] of [
+    [0, "le gusta"],
+    [0, "le gustan"],
+    [1, "les gusta"],
+    [1, "les gustan"],
+    [2, "mas que"],
+    [12, "tiempo libre"],
+    [12, "ocio"],
+  ])
+    assert.equal(
+      a.run(
+        "grade(" + id + "," + JSON.stringify(answer) + ',"es","comparisons")',
+      ),
+      true,
+    );
+  for (const answer of ["he likes", "she likes"])
+    assert.equal(
+      a.run("grade(0," + JSON.stringify(answer) + ',"en","comparisons")'),
+      true,
+    );
+  assert.equal(a.run("grade(0,'les gusta','es','comparisons')"), false);
+  assert.equal(a.run("grade(3,'mas que','es','comparisons')"), false);
+});
+test("Comparison templates accept optional placeholders and supplied text in each slot", () => {
+  const a = boot();
+  for (const [id, answer, dir] of [
+    [4, "A Pedro le gusta leer pero a Jimena le gusta nadar", "es"],
+    [4, "Pedro likes reading but Jimena likes swimming", "en"],
+    [6, "Es similar a", "es"],
+    [7, "It is different from", "en"],
+    [9, "El futbol es mas popular en España", "es"],
+    [9, "Soccer is more popular in Spain", "en"],
+    [9, "es mas popular en", "es"],
+    [11, "Leo un promedio de 12 libros en el año", "es"],
+    [11, "I read about 12 books a year", "en"],
+    [11, "Leo un promedio de libros en el año", "es"],
+  ])
+    assert.equal(
+      a.run(
+        "grade(" +
+          id +
+          "," +
+          JSON.stringify(answer) +
+          "," +
+          JSON.stringify(dir) +
+          ',"comparisons")',
+      ),
+      true,
+      answer,
+    );
+  assert.equal(
+    a.run("grade(9,'el futbol es menos popular en España','es','comparisons')"),
+    false,
+  );
+  assert.equal(
+    a.run(
+      "grade(11,'Leo un promedo de 12 libros en el año','es','comparisons')",
+    ),
+    false,
+  );
+});
+test("Comparisons saves independently and supports feedback, scores and missed rounds", () => {
+  const a = boot();
+  a.run(
+    "$('answer').value='existing draft';$('answer').oninput();selectSet('comparisons');state=makeRound('es',[2],'full','comparisons');$('answer').value='mas que';submit()",
+  );
+  assert.equal(a.nodes.get("feedback").children[3].textContent, "más que");
+  const b = boot(a.saved());
+  assert.equal(b.run("counts().correct"), 1);
+  b.run("submit()");
+  assert.equal(b.run("history[0].setId"), "comparisons");
+  b.run("start([0]);$('unknown').onclick();submit();$('missed').onclick()");
+  assert.equal(
+    b.run(
+      "state.order.map(id=>SETS[state.setId].cards.findIndex(card=>card.id===id)).join()",
+    ),
+    "0",
+  );
+  b.run("selectSet('everyday')");
+  assert.equal(b.nodes.get("answer").value, "existing draft");
+});
+
+test("Family includes all 15 photo pairs and accepts canonical answers in both directions", () => {
+  const a = boot();
+  a.run("selectSet('family')");
+  assert.equal(a.run("state.order.length"), 15);
+  a.run("renderVocabulary()");
+  assert.equal(a.nodes.get("vocabulary").children.length, 15);
+  assert.equal(
+    a.run(
+      "FAMILY.every((card,id)=>grade(id,card[0],'en','family')&&grade(id,card[1],'es','family'))",
+    ),
+    true,
+  );
+  assert.equal(a.nodes.get("set-heading").textContent, "Family · 15 phrases");
+});
+test("Family accepts listed gender forms, accentless answers, and optional template endings", () => {
+  const a = boot();
+  for (const [id, answer, dir] of [
+    [0, "Cuantas personas hay en tu familia", "es"],
+    [3, "un hermano", "es"],
+    [3, "una hermana", "es"],
+    [3, "a sister", "en"],
+    [6, "Soy hijo unico", "es"],
+    [6, "Soy hija unica", "es"],
+    [6, "Soy hije unique", "es"],
+    [8, "Vivo con mis", "es"],
+    [8, "Vivo con mi padre", "es"],
+    [9, "padre", "es"],
+    [10, "madre", "es"],
+    [12, "Es mi", "es"],
+    [12, "Es mi madre", "es"],
+    [12, "It is my mother", "en"],
+    [14, "Son mis", "es"],
+    [14, "Son mis hermanos", "es"],
+    [14, "They are my siblings", "en"],
+  ])
+    assert.equal(
+      a.run(
+        "grade(" +
+          id +
+          "," +
+          JSON.stringify(answer) +
+          "," +
+          JSON.stringify(dir) +
+          ',"family")',
+      ),
+      true,
+      answer,
+    );
+  for (const [id, answer] of [
+    [3, "un hermana"],
+    [6, "Soy hijo unica"],
+    [7, "Con quien vive"],
+    [9, "madre"],
+    [13, "Quien es"],
+  ])
+    assert.equal(
+      a.run("grade(" + id + "," + JSON.stringify(answer) + ',"es","family")'),
+      false,
+      answer,
+    );
+});
+test("Family keeps independent progress, accented feedback, missed cards and recent scores", () => {
+  const a = boot();
+  a.run(
+    "$('answer').value='existing draft';$('answer').oninput();selectSet('family');state=makeRound('es',[0],'full','family');$('answer').value='Cuantas personas hay en tu familia';submit()",
+  );
+  assert.equal(
+    a.nodes.get("feedback").children[3].textContent,
+    "¿Cuántas personas hay en tu familia?",
+  );
+  const b = boot(a.saved());
+  assert.equal(b.run("state.setId"), "family");
+  assert.equal(b.run("counts().correct"), 1);
+  b.run("submit()");
+  assert.equal(b.run("history[0].setId"), "family");
+  b.run("start([3]);$('unknown').onclick();submit();$('missed').onclick()");
+  assert.equal(
+    b.run(
+      "state.order.map(id=>SETS[state.setId].cards.findIndex(card=>card.id===id)).join()",
+    ),
+    "3",
+  );
+  b.run("selectSet('everyday')");
+  assert.equal(b.nodes.get("answer").value, "existing draft");
+});
+
+test("leading fragments reject negation and arbitrary subjects but accept explicit positive forms", () => {
+  const a = boot();
+  for (const answer of [
+    "No estoy cansado",
+    "Ella está cansada",
+    "No me siento cansada",
+    "I am not cansado",
+  ])
+    assert.equal(
+      a.run("grade(7," + JSON.stringify(answer) + ',"es","feelings")'),
+      false,
+      answer,
+    );
+  assert.equal(a.run("grade(7,'Estoy cansado','es','feelings')"), true);
+  assert.equal(a.run("grade(7,'Me siento cansada','es','feelings')"), true);
+  assert.equal(a.run("grade(9,'No es mi padre','es','family')"), false);
+  assert.equal(a.run("grade(9,'Es mi padre','es','family')"), true);
+});
+test("invalid active state recovers the intact saved round instead of overwriting it", () => {
+  const a = boot();
+  a.run("$('answer').value='recover me';$('answer').oninput()");
+  const data = JSON.parse(a.saved());
+  data.state = { setId: "everyday", invalid: true };
+  const b = boot(JSON.stringify(data));
+  assert.equal(b.run("state.draft"), "recover me");
+  assert.equal(JSON.parse(b.saved()).state.draft, "recover me");
+});
+test("one invalid saved lesson does not prevent recovery of other lessons", () => {
+  const a = boot();
+  a.run(
+    "selectSet('family');$('answer').value='family draft';$('answer').oninput()",
+  );
+  const data = JSON.parse(a.saved());
+  data.state = { invalid: true };
+  data.rounds.everyday = { setId: "constructor" };
+  const b = boot(JSON.stringify(data));
+  assert.equal(b.run("state.setId"), "family");
+  assert.equal(b.run("state.draft"), "family draft");
+});
+test("stable identities survive reordering and insertion in the catalog", () => {
+  const a = boot();
+  a.run(
+    "state=makeRound('es',[0,1]);$('answer').value='draft';$('answer').oninput()",
+  );
+  a.run(
+    "const snapshot=encodeProgress(state,rounds,history);const originalId=state.order[0];SETS.everyday.cards.reverse();SETS.everyday.cards.unshift({...SETS.everyday.cards[0],id:'new-card'});const recovered=decodeProgress(snapshot);globalThis.stableCheck=recovered.state.order[0]===originalId && recovered.state.draft==='draft' && findCard('everyday',originalId).id===originalId;",
+  );
+  assert.equal(a.run("stableCheck"), true);
+});
+test("legacy numeric IDs migrate using the frozen map even if the lesson order changes", () => {
+  const a = boot();
+  a.run(
+    "const legacy={basicAdvanced:1,state:{setId:'everyday',direction:'es',order:[0,1],index:1,results:{0:true},feedback:null,draft:'resume',kind:'missed',complete:false},history:[]};SETS.everyday.cards.reverse();const migrated=decodeProgress(JSON.stringify(legacy));globalThis.migrationCheck=migrated.state.order[0]===LEGACY_CARD_IDS.everyday[0]&&migrated.state.results[LEGACY_CARD_IDS.everyday[0]]===true&&migrated.state.draft==='resume';",
+  );
+  assert.equal(a.run("migrationCheck"), true);
+});
+test("rendering never persists state and only builds vocabulary when review is open", () => {
+  const a = boot();
+  const before = a.saved();
+  a.run("state={...state,draft:'not committed'};render()");
+  assert.equal(a.saved(), before);
+  assert.equal(a.nodes.get("vocabulary")?.children.length || 0, 0);
+  a.run("showReview()");
+  assert.equal(a.nodes.get("vocabulary").children.length, 24);
+  assert.equal(a.saved(), before);
+});
+test("round transitions do not mutate their inputs", () => {
+  const a = boot();
+  assert.equal(
+    a.run(
+      "(()=>{const r=makeRound('es',[0]);const before=JSON.stringify(r);const answered=answerRound(r,'qué tal');const next=advanceRound(answered);return JSON.stringify(r)===before&&answered!==r&&next!==answered&&next.complete&&answered.index===0&&answered.feedback.correct})()",
+    ),
+    true,
+  );
+});
+test("all card identities are unique and all answer rules have explicit supported modes", () => {
+  const a = boot();
+  assert.equal(
+    a.run(
+      "Object.values(SETS).every(set=>new Set(set.cards.map(c=>c.id)).size===set.cards.length&&set.cards.every(c=>c.id&&c.display.en&&c.display.es&&['template','exact','optional-slots','literal-blanks','parenthesized-template'].includes(c.rules.mode)&&c.accepted.es.length&&c.accepted.en.length))",
+    ),
+    true,
+  );
 });
 console.log(`\n${checks} checks passed.`);

@@ -36,3 +36,9 @@ Likes, Dislikes & Opinions now defaults to **Basic**, the 18 worksheet entries: 
 **Comparisons & Free Time** adds 13 worksheet pairs about likes, comparisons, reading, and leisure. Accepts le gusta/le gustan, les gusta/les gustan, tiempo libre/ocio, and he likes/she likes. Dots and blanks are optional; you can also fill them with your own words. Existing lessons and their progress are unchanged.
 
 **Family** includes the 15 pairs from the family worksheet. Accepts un hermano/una hermana and all three listed only-child forms (Soy hijo único, Soy hija única, Soy hije únique). Parenthesized dots and endings are optional. Vivo con mi is accepted as well as Vivo con mis for singular/plural family members. All existing lesson progress is preserved.
+
+## Development and saved-progress compatibility
+
+The app remains a standalone file with no runtime dependencies. The internal catalog now uses named card objects and permanent IDs. Existing numeric-ID saves migrate automatically; valid backup rounds are recovered before creating a new round. Invalid data is backed up under the browser storage key ending in .recovery. See [ARCHITECTURE.md](ARCHITECTURE.md) for grading rules, migration details, and browser test instructions.
+
+Run `npm test` for regression checks. After `npm install`, `npm run test:browser` checks the deployed site in isolated desktop and tablet-touch Edge sessions. It does not use or modify your normal browser profile.
