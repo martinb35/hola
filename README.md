@@ -34,3 +34,5 @@ Likes, Dislikes & Opinions now defaults to **Basic**, the 18 worksheet entries: 
 **Activities & Preferences** covers favorite activities and reasons for choosing them. Both **porque yo soy…** and **porque yo no soy…** are accepted. The good-friend cards distinguish feminine **una buena amiga** from masculine **un buen amigo**; in English, the gender label is optional.
 
 **Comparisons & Free Time** adds 13 worksheet pairs about likes, comparisons, reading, and leisure. Accepts le gusta/le gustan, les gusta/les gustan, tiempo libre/ocio, and he likes/she likes. Dots and blanks are optional; you can also fill them with your own words. Existing lessons and their progress are unchanged.
+
+**Family** includes the 15 pairs from the family worksheet. Accepts un hermano/una hermana and all three listed only-child forms (Soy hijo único, Soy hija única, Soy hije únique). Parenthesized dots and endings are optional. Vivo con mi is accepted as well as Vivo con mis for singular/plural family members. All existing lesson progress is preserved.

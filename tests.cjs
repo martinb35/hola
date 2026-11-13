@@ -340,4 +340,21 @@ test('Comparisons saves independently and supports feedback, scores and missed r
  b.run("submit()");assert.equal(b.run('history[0].setId'),'comparisons');b.run("start([0]);$('unknown').onclick();submit();$('missed').onclick()");assert.equal(b.run('state.order.join()'),'0');
  b.run("selectSet('everyday')");assert.equal(b.nodes.get('answer').value,'existing draft');
 });
+
+test('Family includes all 15 photo pairs and accepts canonical answers in both directions',()=>{
+ const a=boot();a.run("selectSet('family')");assert.equal(a.run('state.order.length'),15);assert.equal(a.nodes.get('vocabulary').children.length,15);
+ assert.equal(a.run("FAMILY.every((card,id)=>grade(id,card[0],'en','family')&&grade(id,card[1],'es','family'))"),true);
+ assert.equal(a.nodes.get('set-heading').textContent,'Family · 15 phrases');
+});
+test('Family accepts listed gender forms, accentless answers, and optional template endings',()=>{
+ const a=boot();
+ for(const [id,answer,dir] of [[0,'Cuantas personas hay en tu familia','es'],[3,'un hermano','es'],[3,'una hermana','es'],[3,'a sister','en'],[6,'Soy hijo unico','es'],[6,'Soy hija unica','es'],[6,'Soy hije unique','es'],[8,'Vivo con mis','es'],[8,'Vivo con mi padre','es'],[9,'padre','es'],[10,'madre','es'],[12,'Es mi','es'],[12,'Es mi madre','es'],[12,'It is my mother','en'],[14,'Son mis','es'],[14,'Son mis hermanos','es'],[14,'They are my siblings','en']])assert.equal(a.run('grade('+id+','+JSON.stringify(answer)+','+JSON.stringify(dir)+',"family")'),true,answer);
+ for(const [id,answer] of [[3,'un hermana'],[6,'Soy hijo unica'],[7,'Con quien vive'],[9,'madre'],[13,'Quien es']])assert.equal(a.run('grade('+id+','+JSON.stringify(answer)+',"es","family")'),false,answer);
+});
+test('Family keeps independent progress, accented feedback, missed cards and recent scores',()=>{
+ const a=boot();a.run("$('answer').value='existing draft';$('answer').oninput();selectSet('family');state=makeRound('es',[0],'full','family');$('answer').value='Cuantas personas hay en tu familia';submit()");
+ assert.equal(a.nodes.get('feedback').children[3].textContent,'¿Cuántas personas hay en tu familia?');
+ const b=boot(a.saved());assert.equal(b.run('state.setId'),'family');assert.equal(b.run('counts().correct'),1);b.run('submit()');assert.equal(b.run('history[0].setId'),'family');
+ b.run("start([3]);$('unknown').onclick();submit();$('missed').onclick()");assert.equal(b.run('state.order.join()'),'3');b.run("selectSet('everyday')");assert.equal(b.nodes.get('answer').value,'existing draft');
+});
 console.log(`\n${checks} checks passed.`);
