@@ -44,3 +44,5 @@ The app remains a standalone file with no runtime dependencies. The internal cat
 Run `npm test` for regression checks. After `npm install`, `npm run test:browser` checks the deployed site in isolated desktop and tablet-touch Edge sessions. It does not use or modify your normal browser profile.
 
 The 32 additions about descriptions, pets, activities and traditions are now a separate **Family, Pets & Traditions** lesson. **Family** retains its original 15 cards. Saved combined Family rounds are split between the lessons, preserving answers, current draft and feedback. Historical completed scores remain unchanged.
+
+**Family Life & Descriptions** is limited to the 18 requested worksheet entries, from “En la cultura…” through “simpático/a/que”. Extra pet, activity and tradition cards have been removed. Existing progress on retained words is preserved; simpático, simpática and simpátique are accepted.

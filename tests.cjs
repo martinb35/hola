@@ -1295,10 +1295,6 @@ test("Family adds family-life, pet, activity, tradition and personality vocabula
     ["como-es-tu-18", "¿Cómo es tu mascota?"],
     ["ella-es-19", "Ella es cariñosa."],
     ["como-son-tus-22", "¿Cómo son tus mascotas?"],
-    [
-      "tradicion-familiar-47",
-      "En mi familia, es una tradición celebrar la Navidad.",
-    ],
   ])
     assert.equal(
       a.run(
@@ -1495,9 +1491,9 @@ test("all card identities are unique and all answer rules have explicit supporte
 test("Family split keeps all original and added cards in separate lessons", () => {
   const a = boot();
   assert.equal(a.run("SETS.family.cards.length"), 15);
-  assert.equal(a.run("SETS.familyLife.cards.length"), 32);
+  assert.equal(a.run("SETS.familyLife.cards.length"), 18);
   a.run("selectSet('familyLife');renderVocabulary()");
-  assert.equal(a.nodes.get("vocabulary").children.length, 32);
+  assert.equal(a.nodes.get("vocabulary").children.length, 18);
   assert.equal(
     a.run(
       "SETS.familyLife.cards.every(c=>grade(c.id,c.display.es,'es','familyLife'))",
@@ -1521,5 +1517,29 @@ test("combined Family progress splits without losing first attempts or current d
   const c = boot(b.saved());
   c.run("selectSet('familyLife')");
   assert.equal(c.run("state.draft"), "current draft");
+});
+
+test("only the requested 18 cards remain and neutral simpátique is accepted", () => {
+  const a = boot();
+  assert.equal(a.run("SETS.familyLife.cards.length"), 18);
+  assert.equal(
+    a.run("grade('simpatico-a-33','simpatique','es','familyLife')"),
+    true,
+  );
+  assert.equal(
+    a.run("findCard('familyLife','tienes-una-mascota-34')"),
+    undefined,
+  );
+});
+test("saved progress keeps retained answers when extra cards are removed", () => {
+  const a = boot();
+  const seed = a.run(
+    "JSON.stringify({schemaVersion:2,basicAdvanced:1,state:{setId:'familyLife',direction:'es',order:['paciente-25','tienes-una-mascota-34','jugueton-31'],index:1,results:{'paciente-25':true},feedback:null,draft:'retired draft',kind:'full',complete:false},rounds:{},history:[]})",
+  );
+  const b = boot(seed);
+  assert.equal(b.run("counts().correct"), 1);
+  assert.equal(b.run("state.order.length"), 2);
+  assert.equal(b.run("state.index"), 1);
+  assert.equal(b.run("state.draft"), "");
 });
 console.log(`\n${checks} checks passed.`);
