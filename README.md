@@ -35,7 +35,7 @@ Likes, Dislikes & Opinions now defaults to **Basic**, the 18 worksheet entries: 
 
 **Comparisons & Free Time** adds 13 worksheet pairs about likes, comparisons, reading, and leisure. Accepts le gusta/le gustan, les gusta/les gustan, tiempo libre/ocio, and he likes/she likes. Dots and blanks are optional; you can also fill them with your own words. Existing lessons and their progress are unchanged.
 
-**Family** includes the 15 pairs from the family worksheet. Accepts un hermano/una hermana and all three listed only-child forms (Soy hijo único, Soy hija única, Soy hije únique). Parenthesized dots and endings are optional. Vivo con mi is accepted as well as Vivo con mis for singular/plural family members. All existing lesson progress is preserved.
+**Family** includes the 15 pairs from the family worksheet plus phrases for family life, pets, activities, celebrations, traditions, and personality. The new adjective cards preserve the listed gender forms, including -e variants. Accepts un hermano/una hermana and all three listed only-child forms (Soy hijo único, Soy hija única, Soy hije únique). Parenthesized dots and endings are optional. Vivo con mi is accepted as well as Vivo con mis for singular/plural family members. All existing lesson progress is preserved.
 
 ## Development and saved-progress compatibility
 
