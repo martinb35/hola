@@ -42,3 +42,5 @@ Likes, Dislikes & Opinions now defaults to **Basic**, the 18 worksheet entries: 
 The app remains a standalone file with no runtime dependencies. The internal catalog now uses named card objects and permanent IDs. Existing numeric-ID saves migrate automatically; valid backup rounds are recovered before creating a new round. Invalid data is backed up under the browser storage key ending in .recovery. See [ARCHITECTURE.md](ARCHITECTURE.md) for grading rules, migration details, and browser test instructions.
 
 Run `npm test` for regression checks. After `npm install`, `npm run test:browser` checks the deployed site in isolated desktop and tablet-touch Edge sessions. It does not use or modify your normal browser profile.
+
+The 32 additions about descriptions, pets, activities and traditions are now a separate **Family, Pets & Traditions** lesson. **Family** retains its original 15 cards. Saved combined Family rounds are split between the lessons, preserving answers, current draft and feedback. Historical completed scores remain unchanged.

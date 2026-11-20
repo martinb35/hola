@@ -106,7 +106,9 @@ function test(label, fn) {
   console.log("PASS " + label);
 }
 test("feedback link opens GitHub issue creation safely", () => {
-  const link = html.match(/<a\b([^>]*class="feedback-link"[^>]*)>([^<]+)<\/a\s*>/);
+  const link = html.match(
+    /<a\b([^>]*class="feedback-link"[^>]*)>([^<]+)<\/a\s*>/,
+  );
   assert.ok(link);
   assert.match(
     link[1],
@@ -1280,19 +1282,31 @@ test("Family adds family-life, pet, activity, tradition and personality vocabula
   const a = boot();
   assert.equal(
     a.run(
-      "SETS.family.cards.slice(15).every(card=>grade(card.id,card.display.es,'es','family')&&grade(card.id,card.display.en,'en','family'))",
+      "SETS.familyLife.cards.every(card=>grade(card.id,card.display.es,'es','familyLife')&&grade(card.id,card.display.en,'en','familyLife'))",
     ),
     true,
   );
   for (const [id, answer] of [
-    ["cultura-vivir-16", "En la cultura mexicana es común vivir con mis padres"],
+    [
+      "cultura-vivir-16",
+      "En la cultura mexicana es común vivir con mis padres",
+    ],
     ["padres-hasta-casarse-17", "vivir con los padres hasta casarse"],
     ["como-es-tu-18", "¿Cómo es tu mascota?"],
     ["ella-es-19", "Ella es cariñosa."],
     ["como-son-tus-22", "¿Cómo son tus mascotas?"],
-    ["tradicion-familiar-47", "En mi familia, es una tradición celebrar la Navidad."],
+    [
+      "tradicion-familiar-47",
+      "En mi familia, es una tradición celebrar la Navidad.",
+    ],
   ])
-    assert.equal(a.run(`grade(${JSON.stringify(id)},${JSON.stringify(answer)},"es","family")`), true, answer);
+    assert.equal(
+      a.run(
+        `grade(${JSON.stringify(id)},${JSON.stringify(answer)},"es","familyLife")`,
+      ),
+      true,
+      answer,
+    );
   for (const [id, answer] of [
     ["travieso-a-e-26", "travieso"],
     ["travieso-a-e-26", "traviesa"],
@@ -1303,11 +1317,20 @@ test("Family adds family-life, pet, activity, tradition and personality vocabula
     ["extrovertido-a-e-30", "extrovertide"],
     ["simpatico-a-33", "simpática"],
   ])
-    assert.equal(a.run(`grade(${JSON.stringify(id)},${JSON.stringify(answer)},"es","family")`), true, answer);
-  assert.equal(a.run("grade('travieso-a-e-26','traviesi','es','family')"), false);
+    assert.equal(
+      a.run(
+        `grade(${JSON.stringify(id)},${JSON.stringify(answer)},"es","familyLife")`,
+      ),
+      true,
+      answer,
+    );
+  assert.equal(
+    a.run("grade('travieso-a-e-26','traviesi','es','familyLife')"),
+    false,
+  );
   assert.equal(
     a.run(
-      "grade('como-es-tu-18','What is your pet like?','en','family')&&grade('como-son-tus-22','What are your parents like?','en','family')",
+      "grade('como-es-tu-18','What is your pet like?','en','familyLife')&&grade('como-son-tus-22','What are your parents like?','en','familyLife')",
     ),
     true,
   );
@@ -1467,5 +1490,36 @@ test("all card identities are unique and all answer rules have explicit supporte
     ),
     true,
   );
+});
+
+test("Family split keeps all original and added cards in separate lessons", () => {
+  const a = boot();
+  assert.equal(a.run("SETS.family.cards.length"), 15);
+  assert.equal(a.run("SETS.familyLife.cards.length"), 32);
+  a.run("selectSet('familyLife');renderVocabulary()");
+  assert.equal(a.nodes.get("vocabulary").children.length, 32);
+  assert.equal(
+    a.run(
+      "SETS.familyLife.cards.every(c=>grade(c.id,c.display.es,'es','familyLife'))",
+    ),
+    true,
+  );
+});
+test("combined Family progress splits without losing first attempts or current draft", () => {
+  const a = boot();
+  const seed = a.run(
+    "JSON.stringify({schemaVersion:2,basicAdvanced:1,state:{setId:'family',direction:'es',order:[LEGACY_CARD_IDS.family[0],'cultura-vivir-16',LEGACY_CARD_IDS.family[1],'paciente-25'],index:1,results:{[LEGACY_CARD_IDS.family[0]]:true},feedback:null,draft:'current draft',kind:'full',complete:false},rounds:{},history:[]})",
+  );
+  const b = boot(seed);
+  assert.equal(b.run("state.setId"), "familyLife");
+  assert.equal(b.run("state.draft"), "current draft");
+  assert.equal(b.run("state.order.length"), 2);
+  b.run("selectSet('family')");
+  assert.equal(b.run("counts().correct"), 1);
+  assert.equal(b.run("state.index"), 1);
+  assert.equal(b.run("state.order.length"), 2);
+  const c = boot(b.saved());
+  c.run("selectSet('familyLife')");
+  assert.equal(c.run("state.draft"), "current draft");
 });
 console.log(`\n${checks} checks passed.`);
