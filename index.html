@@ -922,6 +922,27 @@
     <script>
       "use strict";
       // VOCABULARY — stable IDs are permanent; edit wording without changing IDs.
+      function vocabularyCard(
+        id,
+        en,
+        es,
+        {
+          acceptedEn = [en],
+          acceptedEs = [es],
+          mode = "exact",
+          prefixes = { en: [], es: [] },
+        } = {},
+      ) {
+        return {
+          id,
+          display: { en, es },
+          prompt: { en, es },
+          accepted: { en: acceptedEn, es: acceptedEs },
+          hint: "",
+          template: mode !== "exact",
+          rules: { mode, contractions: true, prefixes },
+        };
+      }
       const SETS = {
         everyday: {
           name: "Everyday Spanish",
@@ -5735,6 +5756,133 @@
                 },
               },
             },
+            vocabularyCard(
+              "cultura-vivir-16",
+              "In … culture, it’s common to live with…",
+              "En la cultura … es común vivir con…",
+              { mode: "optional-slots" },
+            ),
+            vocabularyCard(
+              "padres-hasta-casarse-17",
+              "… one’s parents until you get married",
+              "… los padres hasta casarse",
+              {
+                acceptedEn: [
+                  "… one’s parents until you get married",
+                  "living with one’s parents until you get married",
+                ],
+                acceptedEs: [
+                  "… los padres hasta casarse",
+                  "vivir con los padres hasta casarse",
+                ],
+                mode: "optional-slots",
+                prefixes: { en: ["living with"], es: ["vivir con"] },
+              },
+            ),
+            vocabularyCard(
+              "como-es-tu-18",
+              "What is your … like?",
+              "¿Cómo es tu …?",
+              { mode: "optional-slots" },
+            ),
+            vocabularyCard("ella-es-19", "She is …", "Ella es …", {
+              mode: "optional-slots",
+            }),
+            vocabularyCard("buena-mama-20", "She’s a good mom.", "Es una buena mamá."),
+            vocabularyCard("artistico-21", "He is artistic.", "Él es artístico."),
+            vocabularyCard(
+              "como-son-tus-22",
+              "What are your … like?",
+              "¿Cómo son tus …?",
+              { mode: "optional-slots" },
+            ),
+            vocabularyCard("chistosos-23", "They are funny.", "Son chistosos."),
+            vocabularyCard("atleticos-24", "They are athletic.", "Son atléticos."),
+            vocabularyCard("paciente-25", "patient", "paciente"),
+            vocabularyCard("travieso-a-e-26", "mischievous, naughty", "travieso/a/e", {
+              acceptedEn: ["mischievous, naughty", "mischievous", "naughty"],
+              acceptedEs: ["travieso/a/e", "travieso", "traviesa", "traviese"],
+            }),
+            vocabularyCard("bonito-a-e-27", "lovely, nice", "bonito/a/e", {
+              acceptedEn: ["lovely, nice", "lovely", "nice"],
+              acceptedEs: ["bonito/a/e", "bonito", "bonita", "bonite"],
+            }),
+            vocabularyCard(
+              "carinoso-a-e-28",
+              "loving, affectionate",
+              "cariñoso/a/e",
+              {
+                acceptedEn: ["loving, affectionate", "loving", "affectionate"],
+                acceptedEs: ["cariñoso/a/e", "cariñoso", "cariñosa", "cariñose"],
+              },
+            ),
+            vocabularyCard("divertido-a-e-29", "fun, funny", "divertido/a/e", {
+              acceptedEn: ["fun, funny", "fun", "funny"],
+              acceptedEs: ["divertido/a/e", "divertido", "divertida", "divertide"],
+            }),
+            vocabularyCard(
+              "extrovertido-a-e-30",
+              "extroverted, outgoing",
+              "extrovertido/a/e",
+              {
+                acceptedEn: ["extroverted, outgoing", "extroverted", "outgoing"],
+                acceptedEs: [
+                  "extrovertido/a/e",
+                  "extrovertido",
+                  "extrovertida",
+                  "extrovertide",
+                ],
+              },
+            ),
+            vocabularyCard("jugueton-31", "playful", "juguetón"),
+            vocabularyCard("inteligente-32", "intelligent", "inteligente"),
+            vocabularyCard("simpatico-a-33", "likeable, pleasant", "simpático/a", {
+              acceptedEn: ["likeable, pleasant", "likeable", "pleasant"],
+              acceptedEs: ["simpático/a", "simpático", "simpática"],
+            }),
+            vocabularyCard("tienes-una-mascota-34", "Do you have a pet?", "¿Tienes una mascota?"),
+            vocabularyCard("tienes-mascotas-35", "Do you have pets?", "¿Tienes mascotas?"),
+            vocabularyCard("tengo-una-mascota-36", "Yes, I have a pet.", "Sí, tengo una mascota."),
+            vocabularyCard("perro-perra-37", "dog", "perro/perra", {
+              acceptedEs: ["perro/perra", "perro", "perra"],
+            }),
+            vocabularyCard("gato-gata-38", "cat", "gato/gata", {
+              acceptedEs: ["gato/gata", "gato", "gata"],
+            }),
+            vocabularyCard(
+              "que-haces-con-tu-mascota-39",
+              "What do you do with your pet?",
+              "¿Qué haces con tu mascota?",
+            ),
+            vocabularyCard("juego-con-mi-mascota-40", "I play with my pet.", "Juego con mi mascota."),
+            vocabularyCard(
+              "que-haces-con-tu-familia-41",
+              "What do you do with your family?",
+              "¿Qué haces con tu familia?",
+            ),
+            vocabularyCard("pasamos-tiempo-juntos-42", "We spend time together.", "Pasamos tiempo juntos."),
+            vocabularyCard(
+              "que-haces-con-tus-amigos-43",
+              "What do you do with your friends?",
+              "¿Qué haces con tus amigos?",
+            ),
+            vocabularyCard("jugamos-juntos-44", "We play together.", "Jugamos juntos."),
+            vocabularyCard(
+              "que-celebra-tu-familia-45",
+              "What does your family celebrate?",
+              "¿Qué celebra tu familia?",
+            ),
+            vocabularyCard(
+              "celebramos-cumpleanos-46",
+              "We celebrate birthdays together.",
+              "Celebramos los cumpleaños juntos.",
+            ),
+            vocabularyCard(
+              "tradicion-familiar-47",
+              "In my family, it’s a tradition to celebrate…",
+              "En mi familia, es una tradición celebrar…",
+              { mode: "optional-slots" },
+            ),
           ],
         },
       };

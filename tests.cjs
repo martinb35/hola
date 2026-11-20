@@ -1258,19 +1258,59 @@ test("Comparisons saves independently and supports feedback, scores and missed r
   assert.equal(b.nodes.get("answer").value, "existing draft");
 });
 
-test("Family includes all 15 photo pairs and accepts canonical answers in both directions", () => {
+test("Family includes the original photo pairs and accepts canonical answers in both directions", () => {
   const a = boot();
   a.run("selectSet('family')");
-  assert.equal(a.run("state.order.length"), 15);
+  const count = a.run("SETS.family.cards.length");
+  assert.equal(a.run("state.order.length"), count);
   a.run("renderVocabulary()");
-  assert.equal(a.nodes.get("vocabulary").children.length, 15);
+  assert.equal(a.nodes.get("vocabulary").children.length, count);
   assert.equal(
     a.run(
       "FAMILY.every((card,id)=>grade(id,card[0],'en','family')&&grade(id,card[1],'es','family'))",
     ),
     true,
   );
-  assert.equal(a.nodes.get("set-heading").textContent, "Family · 15 phrases");
+  assert.equal(
+    a.nodes.get("set-heading").textContent,
+    `Family · ${count} phrases`,
+  );
+});
+test("Family adds family-life, pet, activity, tradition and personality vocabulary", () => {
+  const a = boot();
+  assert.equal(
+    a.run(
+      "SETS.family.cards.slice(15).every(card=>grade(card.id,card.display.es,'es','family')&&grade(card.id,card.display.en,'en','family'))",
+    ),
+    true,
+  );
+  for (const [id, answer] of [
+    ["cultura-vivir-16", "En la cultura mexicana es común vivir con mis padres"],
+    ["padres-hasta-casarse-17", "vivir con los padres hasta casarse"],
+    ["como-es-tu-18", "¿Cómo es tu mascota?"],
+    ["ella-es-19", "Ella es cariñosa."],
+    ["como-son-tus-22", "¿Cómo son tus mascotas?"],
+    ["tradicion-familiar-47", "En mi familia, es una tradición celebrar la Navidad."],
+  ])
+    assert.equal(a.run(`grade(${JSON.stringify(id)},${JSON.stringify(answer)},"es","family")`), true, answer);
+  for (const [id, answer] of [
+    ["travieso-a-e-26", "travieso"],
+    ["travieso-a-e-26", "traviesa"],
+    ["travieso-a-e-26", "traviese"],
+    ["bonito-a-e-27", "bonite"],
+    ["carinoso-a-e-28", "cariñose"],
+    ["divertido-a-e-29", "divertide"],
+    ["extrovertido-a-e-30", "extrovertide"],
+    ["simpatico-a-33", "simpática"],
+  ])
+    assert.equal(a.run(`grade(${JSON.stringify(id)},${JSON.stringify(answer)},"es","family")`), true, answer);
+  assert.equal(a.run("grade('travieso-a-e-26','traviesi','es','family')"), false);
+  assert.equal(
+    a.run(
+      "grade('como-es-tu-18','What is your pet like?','en','family')&&grade('como-son-tus-22','What are your parents like?','en','family')",
+    ),
+    true,
+  );
 });
 test("Family accepts listed gender forms, accentless answers, and optional template endings", () => {
   const a = boot();
